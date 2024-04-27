@@ -11,8 +11,12 @@ import java.util.Collection;
 public class ChessGame {
 
     public ChessGame() {
-
+        teamTurn = TeamColor.WHITE;
+        board = new ChessBoard();
     }
+
+    private TeamColor teamTurn;
+    private ChessBoard board;
 
     /**
      * @return Which team's turn it is
