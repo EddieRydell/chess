@@ -19,7 +19,7 @@ public class ChessBoard {
         if (position == null) {
             throw new IllegalArgumentException("Position cannot be null");
         }
-        if (position.getRow() > BOARD_SIZE - 1 || position.getRow() < 0 || position.getColumn() > BOARD_SIZE - 1 || position.getColumn() < 0) {
+        if (position.getRow() > BOARD_SIZE || position.getRow() < 1 || position.getColumn() > BOARD_SIZE || position.getColumn() < 1) {
             throw new IllegalArgumentException("Invalid position");
         }
     }
@@ -32,7 +32,7 @@ public class ChessBoard {
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
         validatePosition(position);
-        board[position.getRow()][position.getColumn()] = piece;
+        board[position.getRow() - 1][position.getColumn() - 1] = piece;
     }
 
     /**
@@ -44,7 +44,7 @@ public class ChessBoard {
      */
     public ChessPiece getPiece(ChessPosition position) {
         validatePosition(position);
-        return board[position.getRow()][position.getColumn()];
+        return board[position.getRow() - 1][position.getColumn() - 1];
     }
 
     /**
