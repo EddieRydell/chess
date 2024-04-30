@@ -12,6 +12,8 @@ public class ChessBoard {
         
     }
 
+    private 
+
     /**
      * Adds a chess piece to the chessboard
      *
