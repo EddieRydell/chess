@@ -3,6 +3,7 @@ package chess;
 import java.sql.Array;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * Represents a single chess piece
@@ -15,6 +16,19 @@ public class ChessPiece {
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         pieceType = type;
         teamColor = pieceColor;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ChessPiece that = (ChessPiece) o;
+        return teamColor == that.teamColor && pieceType == that.pieceType;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(teamColor, pieceType);
     }
 
     /**
@@ -57,7 +71,40 @@ public class ChessPiece {
         Collection<ChessMove> moves = new ArrayList<>();
         switch (pieceType) {
             case KING:
+                ChessPosition newPosition = new ChessPosition(myPosition.getRow() + 1, myPosition.getColumn() + 1);
+                if (board.getPiece(newPosition) == null) {
+                    moves.add(new ChessMove(myPosition, newPosition, null));
+                }
+                newPosition = new ChessPosition(myPosition.getRow() + 1, myPosition.getColumn());
+                if (board.getPiece(newPosition) == null) {
+                    moves.add(new ChessMove(myPosition, newPosition, null));
+                }
+                newPosition = new ChessPosition(myPosition.getRow() + 1, myPosition.getColumn() - 1);
+                if (board.getPiece(newPosition) == null) {
+                    moves.add(new ChessMove(myPosition, newPosition, null));
+                }
 
+                newPosition = new ChessPosition(myPosition.getRow(), myPosition.getColumn() + 1);
+                if (board.getPiece(newPosition) == null) {
+                    moves.add(new ChessMove(myPosition, newPosition, null));
+                }
+                newPosition = new ChessPosition(myPosition.getRow(), myPosition.getColumn() - 1);
+                if (board.getPiece(newPosition) == null) {
+                    moves.add(new ChessMove(myPosition, newPosition, null));
+                }
+
+                newPosition = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn() + 1);
+                if (board.getPiece(newPosition) == null) {
+                    moves.add(new ChessMove(myPosition, newPosition, null));
+                }
+                newPosition = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn());
+                if (board.getPiece(newPosition) == null) {
+                    moves.add(new ChessMove(myPosition, newPosition, null));
+                }
+                newPosition = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn() - 1);
+                if (board.getPiece(newPosition) == null) {
+                    moves.add(new ChessMove(myPosition, newPosition, null));
+                }
                 break;
             case QUEEN:
 
@@ -69,7 +116,7 @@ public class ChessPiece {
 
                 break;
             case ROOK:
-                
+
                 break;
             case PAWN:
 

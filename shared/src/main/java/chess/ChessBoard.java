@@ -46,6 +46,10 @@ public class ChessBoard {
         validatePosition(position);
         return board[position.getRow() - 1][position.getColumn() - 1];
     }
+    public ChessPiece getPiece(int row, int col) {
+        validatePosition(new ChessPosition(row, col));
+        return board[row - 1][col - 1];
+    }
 
     /**
      * Sets the board to the default starting board
