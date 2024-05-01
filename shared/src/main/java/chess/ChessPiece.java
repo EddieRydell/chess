@@ -5,6 +5,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 
+import static chess.ChessBoard.BOARD_SIZE;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+
 /**
  * Represents a single chess piece
  * <p>
@@ -69,48 +73,39 @@ public class ChessPiece {
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         Collection<ChessMove> moves = new ArrayList<>();
+        ChessPosition newPosition;
         switch (pieceType) {
             case KING:
-                ChessPosition newPosition = new ChessPosition(myPosition.getRow() + 1, myPosition.getColumn() + 1);
-                if (board.getPiece(newPosition) == null) {
-                    moves.add(new ChessMove(myPosition, newPosition, null));
-                }
-                newPosition = new ChessPosition(myPosition.getRow() + 1, myPosition.getColumn());
-                if (board.getPiece(newPosition) == null) {
-                    moves.add(new ChessMove(myPosition, newPosition, null));
-                }
-                newPosition = new ChessPosition(myPosition.getRow() + 1, myPosition.getColumn() - 1);
-                if (board.getPiece(newPosition) == null) {
-                    moves.add(new ChessMove(myPosition, newPosition, null));
-                }
-
-                newPosition = new ChessPosition(myPosition.getRow(), myPosition.getColumn() + 1);
-                if (board.getPiece(newPosition) == null) {
-                    moves.add(new ChessMove(myPosition, newPosition, null));
-                }
-                newPosition = new ChessPosition(myPosition.getRow(), myPosition.getColumn() - 1);
-                if (board.getPiece(newPosition) == null) {
-                    moves.add(new ChessMove(myPosition, newPosition, null));
-                }
-
-                newPosition = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn() + 1);
-                if (board.getPiece(newPosition) == null) {
-                    moves.add(new ChessMove(myPosition, newPosition, null));
-                }
-                newPosition = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn());
-                if (board.getPiece(newPosition) == null) {
-                    moves.add(new ChessMove(myPosition, newPosition, null));
-                }
-                newPosition = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn() - 1);
-                if (board.getPiece(newPosition) == null) {
-                    moves.add(new ChessMove(myPosition, newPosition, null));
+                for (int i = max(myPosition.getRow() - 1, 0); i < min(BOARD_SIZE, myPosition.getRow() + 1); i++) {
+                    for (int j = max(myPosition.getColumn() - 1, 0); j < min(BOARD_SIZE, myPosition.getColumn() + 1); j++) {
+                        moves.add(new ChessMove(myPosition, new ChessPosition(i, j), null));
+                    }
                 }
                 break;
             case QUEEN:
 
                 break;
             case BISHOP:
-
+                newPosition = new ChessPosition(myPosition.getRow() + 1, myPosition.getColumn() + 1);
+                while (newPosition.isValidPosition()) {
+                    moves.add(new ChessMove(myPosition, newPosition, null));
+                    newPosition = new ChessPosition(newPosition.getRow() + 1, newPosition.getColumn() + 1);
+                }
+                newPosition = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn() - 1);
+                while (newPosition.isValidPosition()) {
+                    moves.add(new ChessMove(myPosition, newPosition, null));
+                    newPosition = new ChessPosition(newPosition.getRow() - 1, newPosition.getColumn() - 1);
+                }
+                newPosition = new ChessPosition(myPosition.getRow() + 1, myPosition.getColumn() -1);
+                while (newPosition.isValidPosition()) {
+                    moves.add(new ChessMove(myPosition, newPosition, null));
+                    newPosition = new ChessPosition(newPosition.getRow() + 1, newPosition.getColumn() - 1);
+                }
+                newPosition = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn() + 1);
+                while (newPosition.isValidPosition()) {
+                    moves.add(new ChessMove(myPosition, newPosition, null));
+                    newPosition = new ChessPosition(newPosition.getRow() - 1, newPosition.getColumn() + 1);
+                }
                 break;
             case KNIGHT:
 

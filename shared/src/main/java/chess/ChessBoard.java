@@ -15,15 +15,6 @@ public class ChessBoard {
 
     ChessPiece[][] board = new ChessPiece[BOARD_SIZE][BOARD_SIZE];
 
-    private void validatePosition(ChessPosition position) {
-        if (position == null) {
-            throw new IllegalArgumentException("Position cannot be null");
-        }
-        if (position.getRow() > BOARD_SIZE || position.getRow() < 1 || position.getColumn() > BOARD_SIZE || position.getColumn() < 1) {
-            throw new IllegalArgumentException("Invalid position");
-        }
-    }
-
     /**
      * Adds a chess piece to the chessboard
      *
@@ -31,7 +22,9 @@ public class ChessBoard {
      * @param piece    the piece to add
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
-        validatePosition(position);
+        if (!position.isValidPosition()) {
+            throw new IllegalArgumentException("Invalid position");
+        }
         board[position.getRow() - 1][position.getColumn() - 1] = piece;
     }
 
@@ -43,12 +36,10 @@ public class ChessBoard {
      * position
      */
     public ChessPiece getPiece(ChessPosition position) {
-        validatePosition(position);
+        if (!position.isValidPosition()) {
+            throw new IllegalArgumentException("Invalid position");
+        }
         return board[position.getRow() - 1][position.getColumn() - 1];
-    }
-    public ChessPiece getPiece(int row, int col) {
-        validatePosition(new ChessPosition(row, col));
-        return board[row - 1][col - 1];
     }
 
     /**
