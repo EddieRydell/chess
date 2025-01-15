@@ -24,12 +24,13 @@ public class ChessPiece {
     }
 
     private final PieceType type;
-
     private final ChessGame.TeamColor pieceColor;
+    private final boolean enPassant;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         this.pieceColor = pieceColor;
         this.type = type;
+        this.enPassant = false;
     }
 
     @Override
@@ -41,12 +42,12 @@ public class ChessPiece {
             return false;
         }
         ChessPiece that = (ChessPiece) o;
-        return pieceColor == that.pieceColor && type == that.type;
+        return enPassant == that.enPassant && type == that.type && pieceColor == that.pieceColor;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(pieceColor, type);
+        return Objects.hash(type, pieceColor, enPassant);
     }
 
     /**
