@@ -40,14 +40,6 @@ public class ChessGame {
         currTurn = team;
     }
 
-    /**
-     * Helper method: performs a temporary move on the board
-     * and checks if the king would be in check afterwards.
-     *
-     * @param move The move to test
-     * @param team The team color of the piece that wants to move
-     * @return true if after the move, the mover's king is NOT in check
-     */
     private boolean isMoveSafe(ChessMove move, TeamColor team) {
         ChessPosition start = move.getStartPosition();
         ChessPosition end = move.getEndPosition();
@@ -166,7 +158,25 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        if (isInCheck(teamColor)) {
+            return false;
+        }
+
+        // If not in check, see if there's any valid move for the team
+        for (int i = 1; i < 9; i++) {
+            for (int j = 1; j < 9; j++) {
+                ChessPosition position = new ChessPosition(i, j);
+                ChessPiece piece = board.getPiece(position);
+                if (piece != null && piece.getTeamColor() == teamColor) {
+                    Collection<ChessMove> moves = validMoves(position);
+                    if (moves != null && !moves.isEmpty()) {
+                        return false;
+                    }
+                }
+            }
+        }
+        // No valid moves and not in check => stalemate
+        return true;
     }
 
     /**
