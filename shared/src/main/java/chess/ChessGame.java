@@ -110,9 +110,14 @@ public class ChessGame {
         }
 
         board.addPiece(startPos, null);
-        board.addPiece(endPos, piece);
+        if (move.getPromotionPiece() == null) {
+            board.addPiece(endPos, piece);
+        }
+        else {
+            board.addPiece(endPos, new ChessPiece(currTurn, move.getPromotionPiece()));
+        }
 
-        currTurn = (currTurn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+            currTurn = (currTurn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
     }
 
     /**
