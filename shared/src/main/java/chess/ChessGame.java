@@ -152,20 +152,7 @@ public class ChessGame {
             return false;
         }
 
-        for (int i = 1; i < 9; i++) {
-            for (int j = 1; j < 9; j++) {
-                ChessPosition position = new ChessPosition(i, j);
-                ChessPiece piece = board.getPiece(position);
-                if (piece != null && piece.getTeamColor() == teamColor) {
-                    Collection<ChessMove> moves = validMoves(position);
-                    if (moves != null && !moves.isEmpty()) {
-                        return false;
-                    }
-                }
-            }
-        }
-
-        return true;
+        return noValidMoves(teamColor);
     }
 
     /**
@@ -180,6 +167,10 @@ public class ChessGame {
             return false;
         }
 
+        return noValidMoves(teamColor);
+    }
+
+    private boolean noValidMoves(TeamColor teamColor) {
         for (int i = 1; i < 9; i++) {
             for (int j = 1; j < 9; j++) {
                 ChessPosition position = new ChessPosition(i, j);
