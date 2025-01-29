@@ -92,7 +92,6 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        System.out.println("in makeMove");
         ChessPosition startPos = move.getStartPosition();
         ChessPosition endPos = move.getEndPosition();
 
@@ -111,7 +110,10 @@ public class ChessGame {
         }
 
         if (move.isCastling()) {
-            System.out.println("castling");
+            System.out.println("Castling from " + move.getStartPosition() + " to " + move.getEndPosition());
+            // Let's see the numeric row/column
+            System.out.println("End col = " + move.getEndPosition().getColumn());
+
             int kingRow = getTeamTurn() == TeamColor.WHITE ? 1 : 8;
             if (move.getEndPosition().getColumn() == 7) {
                 ChessPosition rookStart = new ChessPosition(kingRow, 8);
@@ -122,7 +124,7 @@ public class ChessGame {
                 rookPiece.setHasMoved(true);
             }
             else if (move.getEndPosition().getColumn() == 3) {
-                System.out.println("queensize castling");
+                System.out.println("queenside castling");
                 ChessPosition rookStart = new ChessPosition(kingRow, 1);
                 ChessPosition rookEnd = new ChessPosition(kingRow, 4);
                 ChessPiece rookPiece = board.getPiece(rookStart);

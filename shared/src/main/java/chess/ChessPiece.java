@@ -168,7 +168,7 @@ public class ChessPiece {
             attemptCastling(moves, board, pos, 8, 7, 7);
 
             // Attempt Queenside (long) castle
-            // Rook in column 1, check if columns 2 and 3 are in check
+            // Rook in column 1, check if columns 2, 3, and 4 are in check
             attemptCastling(moves, board, pos, 1, 3, 3);
         }
     }
@@ -302,10 +302,9 @@ public class ChessPiece {
             return;
         }
 
-        ChessMove newMove = new ChessMove(kingPos,
-                new ChessPosition(kingPos.getRow(), endColumn),
-                null);
+        ChessMove newMove = new ChessMove(kingPos, new ChessPosition(kingPos.getRow(), endColumn), null);
         newMove.setCastling(true);
+        System.out.println("castling: " + newMove.toString());
         moves.add(newMove);
     }
 

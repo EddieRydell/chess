@@ -13,14 +13,6 @@ public class ChessMove {
     private final ChessPosition startPosition;
     private final ChessPosition endPosition;
     private final ChessPiece.PieceType promotionPiece;
-    private boolean isCastling;
-
-    public boolean isCastling() {
-        return isCastling;
-    }
-    public void setCastling(boolean castling) {
-        isCastling = castling;
-    }
 
     @Override
     public boolean equals(Object o) {

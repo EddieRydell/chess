@@ -41,8 +41,11 @@ public class CastlingTests {
         ChessMove queenSide = new ChessMove(kingPosition, new ChessPosition(1, 3), null);
         ChessMove kingSide = new ChessMove(kingPosition, new ChessPosition(1, 7), null);
 
-        Assertions.assertTrue(game.validMoves(kingPosition).contains(queenSide), VALID_CASTLE_MISSING);
         Assertions.assertTrue(game.validMoves(kingPosition).contains(kingSide), VALID_CASTLE_MISSING);
+        System.out.println("contains kingside");
+        Assertions.assertTrue(game.validMoves(kingPosition).contains(queenSide), VALID_CASTLE_MISSING);
+        System.out.println("contains queenside");
+
 
         //queen side castle works correctly
         Assertions.assertDoesNotThrow(() -> game.makeMove(queenSide));
