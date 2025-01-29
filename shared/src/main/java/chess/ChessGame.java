@@ -162,7 +162,6 @@ public class ChessGame {
             return false;
         }
 
-        // If not in check, see if there's any valid move for the team
         for (int i = 1; i < 9; i++) {
             for (int j = 1; j < 9; j++) {
                 ChessPosition position = new ChessPosition(i, j);
@@ -175,7 +174,7 @@ public class ChessGame {
                 }
             }
         }
-        // No valid moves and not in check => stalemate
+
         return true;
     }
 
