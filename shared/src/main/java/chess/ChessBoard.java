@@ -45,7 +45,7 @@ public class ChessBoard {
             'k', ChessPiece.PieceType.KING,
             'b', ChessPiece.PieceType.BISHOP);
 
-    public static ChessBoard loadBoard(String boardText) {
+    private static ChessBoard loadBoard(String boardText) {
         var board = new ChessBoard();
         int row = 8;
         int column = 1;
@@ -72,7 +72,7 @@ public class ChessBoard {
         return board;
     }
 
-    public static ChessBoard defaultBoard() {
+    private static ChessBoard defaultBoard() {
         return loadBoard("""
                 |r|n|b|q|k|b|n|r|
                 |p|p|p|p|p|p|p|p|
@@ -85,7 +85,7 @@ public class ChessBoard {
                 """);
     }
 
-    public static List<ChessMove> loadMoves(ChessPosition startPosition, int[][] endPositions) {
+    private static List<ChessMove> loadMoves(ChessPosition startPosition, int[][] endPositions) {
         var validMoves = new ArrayList<ChessMove>();
         for (var endPosition : endPositions) {
             validMoves.add(new ChessMove(startPosition,
