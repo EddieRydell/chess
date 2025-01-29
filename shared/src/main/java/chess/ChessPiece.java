@@ -15,9 +15,22 @@ public class ChessPiece {
     private final ChessGame.TeamColor teamColor;
     private final PieceType type;
 
-    public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
-        this.teamColor = pieceColor;
-        this.type = type;
+    private boolean hasMoved = false;
+
+    public boolean hasMoved() {
+        return hasMoved;
+    }
+    public void setHasMoved(boolean moved) {
+        this.hasMoved = moved;
+    }
+
+    @Override
+    public String toString() {
+        return "ChessPiece{" +
+                "teamColor=" + teamColor +
+                ", type=" + type +
+                ", hasMoved=" + hasMoved +
+                '}';
     }
 
     @Override
@@ -29,12 +42,17 @@ public class ChessPiece {
             return false;
         }
         ChessPiece that = (ChessPiece) o;
-        return teamColor == that.teamColor && type == that.type;
+        return hasMoved == that.hasMoved && teamColor == that.teamColor && type == that.type;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(teamColor, type);
+        return Objects.hash(teamColor, type, hasMoved);
+    }
+
+    public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
+        this.teamColor = pieceColor;
+        this.type = type;
     }
 
     /**
