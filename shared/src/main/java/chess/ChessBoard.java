@@ -1,8 +1,6 @@
 package chess;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * A chessboard that can hold and rearrange chess pieces.
@@ -11,26 +9,11 @@ import java.util.Objects;
  * signature of the existing methods.
  */
 public class ChessBoard {
-    private final ChessPiece[][] squares = new ChessPiece[8][8];
+
+    private ChessPiece[][] board;
+
     public ChessBoard() {
-        // resetBoard();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        ChessBoard that = (ChessBoard) o;
-        return Objects.deepEquals(squares, that.squares);
-    }
-
-    @Override
-    public int hashCode() {
-        return Arrays.deepHashCode(squares);
+        board = new ChessPiece[8][8];
     }
 
     /**
@@ -40,7 +23,7 @@ public class ChessBoard {
      * @param piece    the piece to add
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
-        squares[position.getRow() - 1][position.getColumn() - 1] = piece;
+        board[position.getRow() - 1][position.getColumn() - 1] = piece;
     }
 
     /**
@@ -51,11 +34,7 @@ public class ChessBoard {
      * position
      */
     public ChessPiece getPiece(ChessPosition position) {
-        return squares[position.getRow() - 1][position.getColumn() - 1];
-    }
-
-    public ChessPiece getPiece(int row, int col) {
-        return getPiece(new ChessPosition(row, col));
+        return board[position.getRow() - 1][position.getColumn() - 1];
     }
 
     private static final Map<Character, ChessPiece.PieceType> CHAR_TO_TYPE_MAP = Map.of(
@@ -106,18 +85,44 @@ public class ChessBoard {
                 """);
     }
 
+    public static List<ChessMove> loadMoves(ChessPosition startPosition, int[][] endPositions) {
+        var validMoves = new ArrayList<ChessMove>();
+        for (var endPosition : endPositions) {
+            validMoves.add(new ChessMove(startPosition,
+                    new ChessPosition(endPosition[0], endPosition[1]), null));
+        }
+        return validMoves;
+    }
+
     /**
      * Sets the board to the default starting board
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        ChessBoard board = defaultBoard();
+        board = defaultBoard().board;
+    }
 
-        for (int i = 1; i <= 8; i++) {
-            for (int j = 1; j <= 8; j++) {
-                ChessPiece piece = board.getPiece(new ChessPosition(i, j));
-                this.addPiece(new ChessPosition(i, j), piece);
-            }
+    @Override
+    public String toString() {
+        return "ChessBoard{" +
+                "board=" + Arrays.toString(board) +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
         }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessBoard that = (ChessBoard) o;
+        return Objects.deepEquals(board, that.board);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.deepHashCode(board);
     }
 }

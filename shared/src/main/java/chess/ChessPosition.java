@@ -18,6 +18,22 @@ public class ChessPosition {
         this.col = col;
     }
 
+    /**
+     * @return which row this position is in
+     * 1 codes for the bottom row
+     */
+    public int getRow() {
+        return row;
+    }
+
+    /**
+     * @return which column this position is in
+     * 1 codes for the left row
+     */
+    public int getColumn() {
+        return col;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -43,23 +59,10 @@ public class ChessPosition {
                 '}';
     }
 
-    /**
-     * @return which row this position is in
-     * 1 codes for the bottom row
-     */
-    public int getRow() {
-        return row;
-    }
-
-    /**
-     * @return which column this position is in
-     * 1 codes for the left row
-     */
-    public int getColumn() {
-        return col;
-    }
-
     public boolean isInBounds() {
-        return row >= 1 && row < 9 && col >= 1 && col < 9;
+        if (row < 9 && row > 0 && col < 9 && col > 0) {
+            return true;
+        }
+        return false;
     }
 }
