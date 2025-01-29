@@ -9,6 +9,14 @@ import java.util.Collection;
  * signature of the existing methods.
  */
 public class ChessGame {
+    /**
+     * Enum identifying the 2 possible teams in a chess game
+     */
+    public enum TeamColor {
+        WHITE,
+        BLACK
+    }
+
     private ChessBoard board;
     private TeamColor currTurn = TeamColor.WHITE;
 
@@ -30,14 +38,6 @@ public class ChessGame {
      */
     public void setTeamTurn(TeamColor team) {
         currTurn = team;
-    }
-
-    /**
-     * Enum identifying the 2 possible teams in a chess game
-     */
-    public enum TeamColor {
-        WHITE,
-        BLACK
     }
 
     /**
