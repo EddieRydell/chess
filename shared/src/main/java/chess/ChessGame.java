@@ -109,11 +109,9 @@ public class ChessGame {
             throw new InvalidMoveException();
         }
 
-        if (move.isCastling()) {
-            System.out.println("Castling from " + move.getStartPosition() + " to " + move.getEndPosition());
-            // Let's see the numeric row/column
-            System.out.println("End col = " + move.getEndPosition().getColumn());
-
+        boolean isCastlingMove = (piece.getPieceType() == ChessPiece.PieceType.KING)
+                && (Math.abs(startPos.getColumn() - endPos.getColumn()) == 2);
+        if (isCastlingMove) {
             int kingRow = getTeamTurn() == TeamColor.WHITE ? 1 : 8;
             if (move.getEndPosition().getColumn() == 7) {
                 ChessPosition rookStart = new ChessPosition(kingRow, 8);
@@ -124,7 +122,6 @@ public class ChessGame {
                 rookPiece.setHasMoved(true);
             }
             else if (move.getEndPosition().getColumn() == 3) {
-                System.out.println("queenside castling");
                 ChessPosition rookStart = new ChessPosition(kingRow, 1);
                 ChessPosition rookEnd = new ChessPosition(kingRow, 4);
                 ChessPiece rookPiece = board.getPiece(rookStart);
@@ -133,13 +130,12 @@ public class ChessGame {
                 rookPiece.setHasMoved(true);
             }
         }
+        board.addPiece(startPos, null);
+        if (move.getPromotionPiece() == null) {
+            board.addPiece(endPos, piece);
+        }
         else {
-            board.addPiece(startPos, null);
-            if (move.getPromotionPiece() == null) {
-                board.addPiece(endPos, piece);
-            } else {
-                board.addPiece(endPos, new ChessPiece(currTurn, move.getPromotionPiece()));
-            }
+            board.addPiece(endPos, new ChessPiece(currTurn, move.getPromotionPiece()));
         }
 
         board.getPiece(endPos).setHasMoved(true);

@@ -42,7 +42,7 @@ public class ChessPiece {
             return false;
         }
         ChessPiece that = (ChessPiece) o;
-        return hasMoved == that.hasMoved && teamColor == that.teamColor && type == that.type;
+        return teamColor == that.teamColor && type == that.type;
     }
 
     @Override
@@ -303,8 +303,6 @@ public class ChessPiece {
         }
 
         ChessMove newMove = new ChessMove(kingPos, new ChessPosition(kingPos.getRow(), endColumn), null);
-        newMove.setCastling(true);
-        System.out.println("castling: " + newMove.toString());
         moves.add(newMove);
     }
 
