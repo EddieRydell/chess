@@ -117,7 +117,9 @@ public class ChessGame {
             board.addPiece(endPos, new ChessPiece(currTurn, move.getPromotionPiece()));
         }
 
-            currTurn = (currTurn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+        board.getPiece(endPos).setHasMoved(true);
+
+        currTurn = (currTurn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
     }
 
     /**

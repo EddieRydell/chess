@@ -160,6 +160,17 @@ public class ChessPiece {
                 }
             }
         }
+
+        ChessPiece king = board.getPiece(pos);
+        if (!king.hasMoved()) {
+            // Attempt Kingside (short) castle
+            // Rook in column 8, check if column 7 is in check
+            attemptCastling(moves, board, pos, 8, 7, 7);
+
+            // Attempt Queenside (long) castle
+            // Rook in column 1, check if columns 2 and 3 are in check
+            attemptCastling(moves, board, pos, 1, 3, 3);
+        }
     }
 
     private void queenMoves(Collection<ChessMove> moves, ChessBoard board, ChessPosition pos) {
@@ -267,5 +278,56 @@ public class ChessPiece {
         else {
             moves.add(new ChessMove(pos, newPos, null));
         }
+    }
+
+    private void attemptCastling(Collection<ChessMove> moves, ChessBoard board,
+                                 ChessPosition kingPos, int rookColumn,
+                                 int throughColumn, int endColumn) {
+        ChessPiece rook = board.getPiece(new ChessPosition(kingPos.getRow(), rookColumn));
+        if (rook == null || rook.getPieceType() != PieceType.ROOK || rook.hasMoved()) {
+            return;
+        }
+
+        // Check if squares between King and Rook are empty
+        int minCol = Math.min(kingPos.getColumn(), rookColumn);
+        int maxCol = Math.max(kingPos.getColumn(), rookColumn);
+        for (int col = minCol + 1; col < maxCol; col++) {
+            ChessPiece p = board.getPiece(new ChessPosition(kingPos.getRow(), col));
+            if (p != null) {
+                return;
+            }
+        }
+
+        if (kingInCheckOrCrossingAttacked(board, kingPos, rookColumn, throughColumn, endColumn)) {
+            return;
+        }
+
+        moves.add(new ChessMove(
+                kingPos,
+                new ChessPosition(kingPos.getRow(), endColumn),
+                null
+        ));
+    }
+
+    private boolean kingInCheckOrCrossingAttacked(ChessBoard board, ChessPosition kingPos,
+                                                  int rookCol, int throughCol, int endCol) {
+
+        if (isSquareAttacked(board, kingPos)) {
+            return true;
+        }
+        ChessPosition passSquare = new ChessPosition(kingPos.getRow(), throughCol);
+        if (isSquareAttacked(board, passSquare)) {
+            return true;
+        }
+        ChessPosition finalSquare = new ChessPosition(kingPos.getRow(), endCol);
+        if (isSquareAttacked(board, finalSquare)) {
+            return true;
+        }
+        return false;
+    }
+
+    // Helper to see if a square is attacked by the opposite side
+    private boolean isSquareAttacked(ChessBoard board, ChessPosition square) {
+
     }
 }
