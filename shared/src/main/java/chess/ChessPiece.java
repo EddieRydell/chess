@@ -302,11 +302,11 @@ public class ChessPiece {
             return;
         }
 
-        moves.add(new ChessMove(
-                kingPos,
+        ChessMove newMove = new ChessMove(kingPos,
                 new ChessPosition(kingPos.getRow(), endColumn),
-                null
-        ));
+                null);
+        newMove.setCastling(true);
+        moves.add(newMove);
     }
 
     private boolean kingInCheckOrCrossingAttacked(ChessBoard board, ChessPosition kingPos,
@@ -328,6 +328,25 @@ public class ChessPiece {
 
     // Helper to see if a square is attacked by the opposite side
     private boolean isSquareAttacked(ChessBoard board, ChessPosition square) {
+        for (int i = 1; i < 9; i++) {
+            for (int j = 1; j < 9; j++) {
+                ChessPosition currPosition = new ChessPosition(i, j);
+                ChessPiece currPiece = board.getPiece(currPosition);
+                if (currPiece == null) {
+                    continue;
+                }
+                if (currPiece.getTeamColor() == teamColor) {
+                    continue;
+                }
 
+                Collection<ChessMove> currMoves = board.getPiece(currPosition).pieceMoves(board, currPosition);
+                for (ChessMove move : currMoves) {
+                    if (move.getEndPosition().equals(square)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 }

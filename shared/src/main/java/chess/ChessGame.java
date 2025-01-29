@@ -92,6 +92,7 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
+        System.out.println("in makeMove");
         ChessPosition startPos = move.getStartPosition();
         ChessPosition endPos = move.getEndPosition();
 
@@ -109,12 +110,34 @@ public class ChessGame {
             throw new InvalidMoveException();
         }
 
-        board.addPiece(startPos, null);
-        if (move.getPromotionPiece() == null) {
-            board.addPiece(endPos, piece);
+        if (move.isCastling()) {
+            System.out.println("castling");
+            int kingRow = getTeamTurn() == TeamColor.WHITE ? 1 : 8;
+            if (move.getEndPosition().getColumn() == 7) {
+                ChessPosition rookStart = new ChessPosition(kingRow, 8);
+                ChessPosition rookEnd = new ChessPosition(kingRow, 6);
+                ChessPiece rookPiece = board.getPiece(rookStart);
+                board.addPiece(rookStart, null);
+                board.addPiece(rookEnd, rookPiece);
+                rookPiece.setHasMoved(true);
+            }
+            else if (move.getEndPosition().getColumn() == 3) {
+                System.out.println("queensize castling");
+                ChessPosition rookStart = new ChessPosition(kingRow, 1);
+                ChessPosition rookEnd = new ChessPosition(kingRow, 4);
+                ChessPiece rookPiece = board.getPiece(rookStart);
+                board.addPiece(rookStart, null);
+                board.addPiece(rookEnd, rookPiece);
+                rookPiece.setHasMoved(true);
+            }
         }
         else {
-            board.addPiece(endPos, new ChessPiece(currTurn, move.getPromotionPiece()));
+            board.addPiece(startPos, null);
+            if (move.getPromotionPiece() == null) {
+                board.addPiece(endPos, piece);
+            } else {
+                board.addPiece(endPos, new ChessPiece(currTurn, move.getPromotionPiece()));
+            }
         }
 
         board.getPiece(endPos).setHasMoved(true);

@@ -104,9 +104,26 @@ public class ChessBoard {
 
     @Override
     public String toString() {
-        return "ChessBoard{" +
-                "board=" + Arrays.toString(board) +
-                '}';
+        StringBuilder sb = new StringBuilder();
+        sb.append("  a b c d e f g h\n"); // Column labels
+
+        for (int row = 8; row >= 1; row--) { // Chess boards print from rank 8 down to 1
+            sb.append(row).append(" "); // Row label
+
+            for (int col = 1; col <= 8; col++) {
+                ChessPiece piece = board[row - 1][col - 1]; // Assuming board[row][col] indexing
+                if (piece == null) {
+                    sb.append(". "); // Empty square
+                }
+                else {
+                    sb.append(piece.toString()).append(" ");
+                }
+            }
+            sb.append(row).append("\n"); // Row label on the right side
+        }
+
+        sb.append("  a b c d e f g h\n"); // Column labels again at the bottom
+        return sb.toString();
     }
 
     @Override
