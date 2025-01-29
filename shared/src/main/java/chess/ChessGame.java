@@ -41,6 +41,36 @@ public class ChessGame {
     }
 
     /**
+     * Helper method: performs a temporary move on the board
+     * and checks if the king would be in check afterwards.
+     *
+     * @param move The move to test
+     * @param team The team color of the piece that wants to move
+     * @return true if after the move, the mover's king is NOT in check
+     */
+    private boolean isMoveSafe(ChessMove move, TeamColor team) {
+        ChessPosition start = move.getStartPosition();
+        ChessPosition end = move.getEndPosition();
+
+        // 1) Save current board state
+        ChessPiece movingPiece = board.getPiece(start);
+        ChessPiece capturedPiece = board.getPiece(end);
+
+        // 2) Make the move on the board
+        board.addPiece(start, null);
+        board.addPiece(end, movingPiece);
+
+        // 3) Check if we're now in check
+        boolean inCheck = isInCheck(team);
+
+        // 4) Undo the move (restore original positions)
+        board.addPiece(start, movingPiece);
+        board.addPiece(end, capturedPiece);
+
+        return !inCheck;
+    }
+
+    /**
      * Gets a valid moves for a piece at the given location
      *
      * @param startPosition the piece to get valid moves for
@@ -48,7 +78,7 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        throw new RuntimeException("Not implemented");
+
     }
 
     /**
