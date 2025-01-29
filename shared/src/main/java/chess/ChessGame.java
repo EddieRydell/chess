@@ -92,7 +92,27 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        throw new RuntimeException("Not implemented");
+        ChessPosition startPos = move.getStartPosition();
+        ChessPosition endPos = move.getEndPosition();
+
+        ChessPiece piece = board.getPiece(startPos);
+        if (piece == null) {
+            throw new InvalidMoveException();
+        }
+
+        if (piece.getTeamColor() != currTurn) {
+            throw new InvalidMoveException();
+        }
+
+        Collection<ChessMove> legalMoves = validMoves(startPos);
+        if (legalMoves == null || !legalMoves.contains(move)) {
+            throw new InvalidMoveException();
+        }
+
+        board.addPiece(startPos, null);
+        board.addPiece(endPos, piece);
+
+        currTurn = (currTurn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
     }
 
     /**
@@ -170,6 +190,12 @@ public class ChessGame {
         return noValidMoves(teamColor);
     }
 
+    /**
+     * Helper function to determine if there are no valid moves for a team
+     *
+     * @param teamColor the team to find valid moves for
+     * @return True if there are no valid moves for the current team
+     */
     private boolean noValidMoves(TeamColor teamColor) {
         for (int i = 1; i < 9; i++) {
             for (int j = 1; j < 9; j++) {
