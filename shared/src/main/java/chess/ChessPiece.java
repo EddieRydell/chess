@@ -92,7 +92,32 @@ public class ChessPiece {
         Collection<ChessMove> moves = new ArrayList<>();
         switch (type) {
             case KING:
-                kingMoves(moves, board, myPosition);
+                kingMoves(moves, board, myPosition, true);
+                break;
+            case QUEEN:
+                queenMoves(moves, board, myPosition);
+                break;
+            case BISHOP:
+                bishopMoves(moves, board, myPosition);
+                break;
+            case KNIGHT:
+                knightMoves(moves, board, myPosition);
+                break;
+            case ROOK:
+                rookMoves(moves, board, myPosition);
+                break;
+            case PAWN:
+                pawnMoves(moves, board, myPosition);
+                break;
+        }
+        return moves;
+    }
+
+    private Collection<ChessMove> pieceMovesWithCastlingOption(ChessBoard board, ChessPosition myPosition, boolean checkCastling) {
+        Collection<ChessMove> moves = new ArrayList<>();
+        switch (type) {
+            case KING:
+                kingMoves(moves, board, myPosition, checkCastling);
                 break;
             case QUEEN:
                 queenMoves(moves, board, myPosition);
@@ -151,7 +176,7 @@ public class ChessPiece {
         }
     }
 
-    private void kingMoves(Collection<ChessMove> moves, ChessBoard board, ChessPosition pos) {
+    private void kingMoves(Collection<ChessMove> moves, ChessBoard board, ChessPosition pos, boolean checkCastling) {
         for (int i = pos.getRow() - 1; i <= pos.getRow() + 1; i++) {
             for (int j = pos.getColumn() - 1; j <= pos.getColumn() + 1; j++) {
                 ChessPosition newPos = new ChessPosition(i, j);
@@ -162,14 +187,16 @@ public class ChessPiece {
         }
 
         ChessPiece king = board.getPiece(pos);
-        if (!king.hasMoved()) {
-            // Attempt Kingside (short) castle
-            // Rook in column 8, check if column 7 is in check
-            attemptCastling(moves, board, pos, 8, 7, 7);
+        if (checkCastling) {
+            if (!king.hasMoved()) {
+                // Attempt Kingside (short) castle
+                // Rook in column 8, check if column 7 is in check
+                attemptCastling(moves, board, pos, 8, 7, 7);
 
-            // Attempt Queenside (long) castle
-            // Rook in column 1, check if columns 2, 3, and 4 are in check
-            attemptCastling(moves, board, pos, 1, 3, 3);
+                // Attempt Queenside (long) castle
+                // Rook in column 1, check if columns 2, 3, and 4 are in check
+                attemptCastling(moves, board, pos, 1, 3, 3);
+            }
         }
     }
 
@@ -309,41 +336,62 @@ public class ChessPiece {
     private boolean kingInCheckOrCrossingAttacked(ChessBoard board, ChessPosition kingPos,
                                                   int rookCol, int throughCol, int endCol) {
 
-        if (isSquareAttacked(board, kingPos)) {
+        if (isSquareAttacked(board, kingPos, getTeamColor())) {
             return true;
         }
         ChessPosition passSquare = new ChessPosition(kingPos.getRow(), throughCol);
-        if (isSquareAttacked(board, passSquare)) {
+        if (isSquareAttacked(board, passSquare, getTeamColor())) {
             return true;
         }
         ChessPosition finalSquare = new ChessPosition(kingPos.getRow(), endCol);
-        if (isSquareAttacked(board, finalSquare)) {
+        if (isSquareAttacked(board, finalSquare, getTeamColor())) {
             return true;
         }
         return false;
     }
 
     // Helper to see if a square is attacked by the opposite side
-    private boolean isSquareAttacked(ChessBoard board, ChessPosition square) {
-        for (int i = 1; i < 9; i++) {
-            for (int j = 1; j < 9; j++) {
-                ChessPosition currPosition = new ChessPosition(i, j);
-                ChessPiece currPiece = board.getPiece(currPosition);
-                if (currPiece == null) {
-                    continue;
-                }
-                if (currPiece.getTeamColor() == teamColor) {
+    public static boolean isSquareAttacked(ChessBoard board, ChessPosition square, ChessGame.TeamColor defendingColor) {
+        ChessGame.TeamColor attackingColor = (defendingColor == ChessGame.TeamColor.WHITE)
+                ? ChessGame.TeamColor.BLACK
+                : ChessGame.TeamColor.WHITE;
+
+        for (int row = 1; row <= 8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                ChessPosition attackerPos = new ChessPosition(row, col);
+                ChessPiece attackerPiece = board.getPiece(attackerPos);
+
+                if (attackerPiece == null) {
                     continue;
                 }
 
-                Collection<ChessMove> currMoves = board.getPiece(currPosition).pieceMoves(board, currPosition);
-                for (ChessMove move : currMoves) {
-                    if (move.getEndPosition().equals(square)) {
+                if (attackerPiece.getTeamColor() != attackingColor) {
+                    continue;
+                }
+
+                Collection<ChessMove> attackerMoves = attackerPiece.pieceMovesWithCastlingOption(board, attackerPos, false);
+
+                for (ChessMove move : attackerMoves) {
+                    ChessPosition endPos = move.getEndPosition();
+
+                    ChessPiece occupant = board.getPiece(endPos);
+                    if (occupant != null && occupant.getTeamColor() == attackerPiece.getTeamColor()) {
+                        continue;
+                    }
+
+                    if (endPos.equals(square)) {
+                        System.out.print(board);
+                        System.out.println("Our team color: " + defendingColor);
+                        System.out.println("Square " + square + " is attacked by "
+                                + attackerPiece.getPieceType()
+                                + " at " + attackerPos);
                         return true;
                     }
                 }
             }
         }
+
         return false;
     }
+
 }

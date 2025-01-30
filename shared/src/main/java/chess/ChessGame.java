@@ -2,6 +2,8 @@ package chess;
 
 import java.util.Collection;
 
+import static chess.ChessPiece.isSquareAttacked;
+
 /**
  * For a class that can manage a chess game, making moves on a board
  * <p>
@@ -45,18 +47,29 @@ public class ChessGame {
         ChessPosition start = move.getStartPosition();
         ChessPosition end = move.getEndPosition();
 
-        // 1) Save current board state
+        // Save current board state
         ChessPiece movingPiece = board.getPiece(start);
         ChessPiece capturedPiece = board.getPiece(end);
 
-        // 2) Make the move on the board
+        // If castling, also check the square the king moves through
+        if (movingPiece.getPieceType() == ChessPiece.PieceType.KING && Math.abs(start.getColumn() - end.getColumn()) == 2) {
+            int kingRow = (team == TeamColor.WHITE) ? 1 : 8;
+            ChessPosition throughSquare = new ChessPosition(kingRow, (start.getColumn() + end.getColumn()) / 2);
+
+            // Prevent castling if in check or moving through check
+            if (isInCheck(team) || isSquareAttacked(board, throughSquare, getTeamTurn()) || isSquareAttacked(board, end, getTeamTurn())) {
+                return false;
+            }
+        }
+
+        // Make the move on the board
         board.addPiece(start, null);
         board.addPiece(end, movingPiece);
 
-        // 3) Check if we're now in check
+        // Check if the move leaves the king in check
         boolean inCheck = isInCheck(team);
 
-        // 4) Undo the move (restore original positions)
+        // Undo the move (restore original positions)
         board.addPiece(start, movingPiece);
         board.addPiece(end, capturedPiece);
 
@@ -109,19 +122,25 @@ public class ChessGame {
             throw new InvalidMoveException();
         }
 
-        boolean isCastlingMove = (piece.getPieceType() == ChessPiece.PieceType.KING)
-                && (Math.abs(startPos.getColumn() - endPos.getColumn()) == 2);
-        if (isCastlingMove) {
-            int kingRow = getTeamTurn() == TeamColor.WHITE ? 1 : 8;
-            if (move.getEndPosition().getColumn() == 7) {
+        // Move the piece
+        board.addPiece(startPos, null);
+        if (move.getPromotionPiece() == null) {
+            board.addPiece(endPos, piece);
+        } else {
+            board.addPiece(endPos, new ChessPiece(currTurn, move.getPromotionPiece()));
+        }
+
+        if (piece.getPieceType() == ChessPiece.PieceType.KING && Math.abs(startPos.getColumn() - endPos.getColumn()) == 2) {
+            int kingRow = (currTurn == TeamColor.WHITE) ? 1 : 8;
+
+            if (endPos.getColumn() == 7) { // Kingside castling
                 ChessPosition rookStart = new ChessPosition(kingRow, 8);
                 ChessPosition rookEnd = new ChessPosition(kingRow, 6);
                 ChessPiece rookPiece = board.getPiece(rookStart);
                 board.addPiece(rookStart, null);
                 board.addPiece(rookEnd, rookPiece);
                 rookPiece.setHasMoved(true);
-            }
-            else if (move.getEndPosition().getColumn() == 3) {
+            } else if (endPos.getColumn() == 3) { // Queenside castling
                 ChessPosition rookStart = new ChessPosition(kingRow, 1);
                 ChessPosition rookEnd = new ChessPosition(kingRow, 4);
                 ChessPiece rookPiece = board.getPiece(rookStart);
@@ -130,15 +149,11 @@ public class ChessGame {
                 rookPiece.setHasMoved(true);
             }
         }
-        board.addPiece(startPos, null);
-        if (move.getPromotionPiece() == null) {
-            board.addPiece(endPos, piece);
-        }
-        else {
-            board.addPiece(endPos, new ChessPiece(currTurn, move.getPromotionPiece()));
-        }
 
-        board.getPiece(endPos).setHasMoved(true);
+        ChessPiece movedPiece = board.getPiece(endPos);
+        if (movedPiece != null) {
+            movedPiece.setHasMoved(true);
+        }
 
         currTurn = (currTurn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
     }

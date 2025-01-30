@@ -114,9 +114,8 @@ public class ChessBoard {
                 ChessPiece piece = board[row - 1][col - 1]; // Assuming board[row][col] indexing
                 if (piece == null) {
                     sb.append(". "); // Empty square
-                }
-                else {
-                    sb.append(piece.toString()).append(" ");
+                } else {
+                    sb.append(getPieceChar(piece)).append(" ");
                 }
             }
             sb.append(row).append("\n"); // Row label on the right side
@@ -124,6 +123,24 @@ public class ChessBoard {
 
         sb.append("  a b c d e f g h\n"); // Column labels again at the bottom
         return sb.toString();
+    }
+
+    /**
+     * Returns the correct character for a chess piece.
+     * White pieces are uppercase, black pieces are lowercase.
+     */
+    private char getPieceChar(ChessPiece piece) {
+        char c;
+        switch (piece.getPieceType()) {
+            case KING -> c = 'K';
+            case QUEEN -> c = 'Q';
+            case ROOK -> c = 'R';
+            case BISHOP -> c = 'B';
+            case KNIGHT -> c = 'N';
+            case PAWN -> c = 'P';
+            default -> c = '?'; // Should never happen
+        }
+        return piece.getTeamColor() == ChessGame.TeamColor.WHITE ? c : Character.toLowerCase(c);
     }
 
     @Override
