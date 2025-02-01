@@ -11,9 +11,18 @@ import java.util.*;
 public class ChessBoard {
 
     private ChessPiece[][] board;
+    private ChessPosition enPassantSquare = null;
 
     public ChessBoard() {
         board = new ChessPiece[8][8];
+    }
+
+    public ChessPosition getEnPassantSquare() {
+        return enPassantSquare;
+    }
+
+    public void setEnPassantSquare(ChessPosition pos) {
+        enPassantSquare = pos;
     }
 
     /**

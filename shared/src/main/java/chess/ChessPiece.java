@@ -283,6 +283,23 @@ public class ChessPiece {
         pawnValidMoves(moves, board, pos, newPos);
         newPos = new ChessPosition(pos.getRow() + direction, pos.getColumn() - 1);
         pawnValidMoves(moves, board, pos, newPos);
+
+        // Now handle en passant
+        if ((this.getTeamColor() == ChessGame.TeamColor.WHITE && pos.getRow() == 5)
+                || (this.getTeamColor() == ChessGame.TeamColor.BLACK && pos.getRow() == 4)) {
+            ChessPosition enPassantSquare = board.getEnPassantSquare();
+            if (enPassantSquare != null) {
+                int newRow = pos.getRow() + direction;
+                ChessPosition potentialLeft = new ChessPosition(newRow, pos.getColumn() - 1);
+                if (enPassantSquare.equals(potentialLeft)) {
+                    moves.add(new ChessMove(pos, potentialLeft, null));
+                }
+                ChessPosition potentialRight = new ChessPosition(newRow, pos.getColumn() + 1);
+                if (enPassantSquare.equals(potentialRight)) {
+                    moves.add(new ChessMove(pos, potentialRight, null));
+                }
+            }
+        }
     }
 
     private void pawnValidMoves(Collection<ChessMove> moves, ChessBoard board, ChessPosition pos, ChessPosition newPos) {

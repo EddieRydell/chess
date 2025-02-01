@@ -152,22 +152,21 @@ public class ChessGame {
 
         // Handle en passant
         if (piece.getPieceType() == ChessPiece.PieceType.PAWN) {
-            // If a pawn moved two squares forward, record the en passant target square.
             if (Math.abs(startPos.getRow() - endPos.getRow()) == 2) {
                 int enPassantRow = (startPos.getRow() + endPos.getRow()) / 2;
                 board.setEnPassantSquare(new ChessPosition(enPassantRow, startPos.getColumn()));
-            } else {
-                // If the pawn is moving diagonally into an empty square, this is an en passant capture.
-                if (Math.abs(startPos.getColumn() - endPos.getColumn()) == 1 && board.getPiece(endPos) == null) {
-                    int capturedRow = (piece.getTeamColor() == TeamColor.WHITE) ? endPos.getRow() - 1 : endPos.getRow() + 1;
-                    ChessPosition capturedPos = new ChessPosition(capturedRow, endPos.getColumn());
-                    board.addPiece(capturedPos, null);
-                }
-                // In any other pawn move (or non-double move), clear the en passant target.
+            }
+            else if (Math.abs(startPos.getColumn() - endPos.getColumn()) == 1
+                    && endPos.equals(board.getEnPassantSquare())) {
+                int capturedRow = (piece.getTeamColor() == TeamColor.WHITE) ? endPos.getRow() - 1 : endPos.getRow() + 1;
+                ChessPosition capturedPos = new ChessPosition(capturedRow, endPos.getColumn());
+                board.addPiece(capturedPos, null);
+                board.setEnPassantSquare(null);
+            }
+            else {
                 board.setEnPassantSquare(null);
             }
         } else {
-            // For any non-pawn move, clear the en passant target.
             board.setEnPassantSquare(null);
         }
 
