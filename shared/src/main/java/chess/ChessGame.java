@@ -2,8 +2,6 @@ package chess;
 
 import java.util.Collection;
 
-import static chess.ChessPiece.isSquareAttacked;
-
 /**
  * For a class that can manage a chess game, making moves on a board
  * <p>
@@ -57,7 +55,9 @@ public class ChessGame {
             ChessPosition throughSquare = new ChessPosition(kingRow, (start.getColumn() + end.getColumn()) / 2);
 
             // Prevent castling if in check or moving through check
-            if (isInCheck(team) || isSquareAttacked(board, throughSquare, getTeamTurn()) || isSquareAttacked(board, end, getTeamTurn())) {
+            if (isInCheck(team)
+                    || isSquareAttacked(throughSquare, team)
+                    || isSquareAttacked(end, team)) {
                 return false;
             }
         }
@@ -255,6 +255,44 @@ public class ChessGame {
         }
 
         return true;
+    }
+
+    public boolean isSquareAttacked(ChessPosition square, TeamColor defendingColor) {
+        TeamColor attackingColor = (defendingColor == TeamColor.WHITE)
+                ? TeamColor.BLACK
+                : TeamColor.WHITE;
+
+        // Loop over all board squares.
+        for (int row = 1; row <= 8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                ChessPosition attackerPos = new ChessPosition(row, col);
+                ChessPiece attackerPiece = board.getPiece(attackerPos);
+                if (attackerPiece == null) {
+                    continue;
+                }
+                if (attackerPiece.getTeamColor() != attackingColor) {
+                    continue;
+                }
+
+                // Generate moves without castling (so that king moves are generated without check logic).
+                Collection<ChessMove> attackerMoves = attackerPiece.pieceMovesWithCastlingOption(board, attackerPos, false);
+
+                for (ChessMove move : attackerMoves) {
+                    ChessPosition endPos = move.getEndPosition();
+
+                    // If a friendly piece occupies the target square for the attacker, skip.
+                    ChessPiece occupant = board.getPiece(endPos);
+                    if (occupant != null && occupant.getTeamColor() == attackerPiece.getTeamColor()) {
+                        continue;
+                    }
+
+                    if (endPos.equals(square)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     /**

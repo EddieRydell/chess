@@ -113,7 +113,7 @@ public class ChessPiece {
         return moves;
     }
 
-    private Collection<ChessMove> pieceMovesWithCastlingOption(ChessBoard board, ChessPosition myPosition, boolean checkCastling) {
+    Collection<ChessMove> pieceMovesWithCastlingOption(ChessBoard board, ChessPosition myPosition, boolean checkCastling) {
         Collection<ChessMove> moves = new ArrayList<>();
         switch (type) {
             case KING:
@@ -186,17 +186,16 @@ public class ChessPiece {
             }
         }
 
-        ChessPiece king = board.getPiece(pos);
-        if (checkCastling) {
-            if (!king.hasMoved()) {
-                // Attempt Kingside (short) castle
-                // Rook in column 8, check if column 7 is in check
-                attemptCastling(moves, board, pos, 8, 7, 7);
+        // Generate castling moves if requested.
+        // Note: Now we do not check whether the king is in or passes through check.
+        if (checkCastling && !this.hasMoved()) {
+            // Attempt Kingside (short) castle.
+            // Rook is assumed to be at column 8; ensure squares between are empty.
+            attemptCastling(moves, board, pos, 8, 7, 7);
 
-                // Attempt Queenside (long) castle
-                // Rook in column 1, check if columns 2, 3, and 4 are in check
-                attemptCastling(moves, board, pos, 1, 3, 3);
-            }
+            // Attempt Queenside (long) castle.
+            // Rook is assumed to be at column 1; ensure squares between are empty.
+            attemptCastling(moves, board, pos, 1, 3, 3);
         }
     }
 
@@ -310,88 +309,25 @@ public class ChessPiece {
     private void attemptCastling(Collection<ChessMove> moves, ChessBoard board,
                                  ChessPosition kingPos, int rookColumn,
                                  int throughColumn, int endColumn) {
+        // Get the rook from the expected position.
         ChessPiece rook = board.getPiece(new ChessPosition(kingPos.getRow(), rookColumn));
         if (rook == null || rook.getPieceType() != PieceType.ROOK || rook.hasMoved()) {
             return;
         }
 
-        // Check if squares between King and Rook are empty
+        // Ensure that the squares between the king and the rook are empty.
         int minCol = Math.min(kingPos.getColumn(), rookColumn);
         int maxCol = Math.max(kingPos.getColumn(), rookColumn);
         for (int col = minCol + 1; col < maxCol; col++) {
-            ChessPiece p = board.getPiece(new ChessPosition(kingPos.getRow(), col));
-            if (p != null) {
+            if (board.getPiece(new ChessPosition(kingPos.getRow(), col)) != null) {
                 return;
             }
         }
 
-        if (kingInCheckOrCrossingAttacked(board, kingPos, rookColumn, throughColumn, endColumn)) {
-            return;
-        }
-
-        ChessMove newMove = new ChessMove(kingPos, new ChessPosition(kingPos.getRow(), endColumn), null);
-        moves.add(newMove);
-    }
-
-    private boolean kingInCheckOrCrossingAttacked(ChessBoard board, ChessPosition kingPos,
-                                                  int rookCol, int throughCol, int endCol) {
-
-        if (isSquareAttacked(board, kingPos, getTeamColor())) {
-            return true;
-        }
-        ChessPosition passSquare = new ChessPosition(kingPos.getRow(), throughCol);
-        if (isSquareAttacked(board, passSquare, getTeamColor())) {
-            return true;
-        }
-        ChessPosition finalSquare = new ChessPosition(kingPos.getRow(), endCol);
-        if (isSquareAttacked(board, finalSquare, getTeamColor())) {
-            return true;
-        }
-        return false;
-    }
-
-    // Helper to see if a square is attacked by the opposite side
-    public static boolean isSquareAttacked(ChessBoard board, ChessPosition square, ChessGame.TeamColor defendingColor) {
-        ChessGame.TeamColor attackingColor = (defendingColor == ChessGame.TeamColor.WHITE)
-                ? ChessGame.TeamColor.BLACK
-                : ChessGame.TeamColor.WHITE;
-
-        for (int row = 1; row <= 8; row++) {
-            for (int col = 1; col <= 8; col++) {
-                ChessPosition attackerPos = new ChessPosition(row, col);
-                ChessPiece attackerPiece = board.getPiece(attackerPos);
-
-                if (attackerPiece == null) {
-                    continue;
-                }
-
-                if (attackerPiece.getTeamColor() != attackingColor) {
-                    continue;
-                }
-
-                Collection<ChessMove> attackerMoves = attackerPiece.pieceMovesWithCastlingOption(board, attackerPos, false);
-
-                for (ChessMove move : attackerMoves) {
-                    ChessPosition endPos = move.getEndPosition();
-
-                    ChessPiece occupant = board.getPiece(endPos);
-                    if (occupant != null && occupant.getTeamColor() == attackerPiece.getTeamColor()) {
-                        continue;
-                    }
-
-                    if (endPos.equals(square)) {
-                        System.out.print(board);
-                        System.out.println("Our team color: " + defendingColor);
-                        System.out.println("Square " + square + " is attacked by "
-                                + attackerPiece.getPieceType()
-                                + " at " + attackerPos);
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
+        // **Note:** The original check for whether the king or the squares it crosses are attacked has been removed.
+        // Now, we simply add the castling move.
+        ChessMove castlingMove = new ChessMove(kingPos, new ChessPosition(kingPos.getRow(), endColumn), null);
+        moves.add(castlingMove);
     }
 
 }
