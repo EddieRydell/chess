@@ -295,7 +295,7 @@ public class ChessGame {
                 }
 
                 // Generate moves without castling (so that king moves are generated without check logic).
-                Collection<ChessMove> attackerMoves = attackerPiece.pieceMovesWithCastlingOption(board, attackerPos, false);
+                Collection<ChessMove> attackerMoves = attackerPiece.pieceMovesNoCastling(board, attackerPos);
 
                 for (ChessMove move : attackerMoves) {
                     ChessPosition endPos = move.getEndPosition();

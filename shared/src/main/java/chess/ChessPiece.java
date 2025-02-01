@@ -14,7 +14,6 @@ public class ChessPiece {
 
     private final ChessGame.TeamColor teamColor;
     private final PieceType type;
-
     private boolean hasMoved = false;
 
     public boolean hasMoved() {
@@ -89,31 +88,14 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        Collection<ChessMove> moves = new ArrayList<>();
-        switch (type) {
-            case KING:
-                kingMoves(moves, board, myPosition, true);
-                break;
-            case QUEEN:
-                queenMoves(moves, board, myPosition);
-                break;
-            case BISHOP:
-                bishopMoves(moves, board, myPosition);
-                break;
-            case KNIGHT:
-                knightMoves(moves, board, myPosition);
-                break;
-            case ROOK:
-                rookMoves(moves, board, myPosition);
-                break;
-            case PAWN:
-                pawnMoves(moves, board, myPosition);
-                break;
-        }
-        return moves;
+        return generatePieceMoves(board, myPosition, true);
     }
 
-    Collection<ChessMove> pieceMovesWithCastlingOption(ChessBoard board, ChessPosition myPosition, boolean checkCastling) {
+    Collection<ChessMove> pieceMovesNoCastling(ChessBoard board, ChessPosition myPosition) {
+        return generatePieceMoves(board, myPosition, false);
+    }
+
+    private Collection<ChessMove> generatePieceMoves(ChessBoard board, ChessPosition myPosition, boolean checkCastling) {
         Collection<ChessMove> moves = new ArrayList<>();
         switch (type) {
             case KING:
@@ -137,6 +119,7 @@ public class ChessPiece {
         }
         return moves;
     }
+
 
     private boolean validatePosition(ChessBoard board, ChessPosition pos) {
         if (!pos.isInBounds()) {
