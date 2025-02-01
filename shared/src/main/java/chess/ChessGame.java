@@ -53,8 +53,6 @@ public class ChessGame {
         if (movingPiece.getPieceType() == ChessPiece.PieceType.KING && Math.abs(start.getColumn() - end.getColumn()) == 2) {
             int kingRow = (team == TeamColor.WHITE) ? 1 : 8;
             ChessPosition throughSquare = new ChessPosition(kingRow, (start.getColumn() + end.getColumn()) / 2);
-
-            // Prevent castling if in check or moving through check
             if (isInCheck(team)
                     || isSquareAttacked(throughSquare, team)
                     || isSquareAttacked(end, team)) {
@@ -62,14 +60,11 @@ public class ChessGame {
             }
         }
 
-        // Make the move on the board
         board.addPiece(start, null);
         board.addPiece(end, movingPiece);
 
-        // Check if the move leaves the king in check
         boolean inCheck = isInCheck(team);
 
-        // Undo the move (restore original positions)
         board.addPiece(start, movingPiece);
         board.addPiece(end, capturedPiece);
 
@@ -294,13 +289,11 @@ public class ChessGame {
                     continue;
                 }
 
-                // Generate moves without castling (so that king moves are generated without check logic).
+                // Generate moves without castling
                 Collection<ChessMove> attackerMoves = attackerPiece.pieceMovesNoCastling(board, attackerPos);
 
                 for (ChessMove move : attackerMoves) {
                     ChessPosition endPos = move.getEndPosition();
-
-                    // If a friendly piece occupies the target square for the attacker, skip.
                     ChessPiece occupant = board.getPiece(endPos);
                     if (occupant != null && occupant.getTeamColor() == attackerPiece.getTeamColor()) {
                         continue;
