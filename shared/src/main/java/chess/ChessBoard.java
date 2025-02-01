@@ -46,15 +46,6 @@ public class ChessBoard {
         return board[position.getRow() - 1][position.getColumn() - 1];
     }
 
-    private static List<ChessMove> loadMoves(ChessPosition startPosition, int[][] endPositions) {
-        var validMoves = new ArrayList<ChessMove>();
-        for (var endPosition : endPositions) {
-            validMoves.add(new ChessMove(startPosition,
-                    new ChessPosition(endPosition[0], endPosition[1]), null));
-        }
-        return validMoves;
-    }
-
     /**
      * Sets the board to the default starting board
      * (How the game of chess normally starts)
