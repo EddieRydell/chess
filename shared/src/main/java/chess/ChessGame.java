@@ -83,11 +83,8 @@ public class ChessGame {
         if (piece == null) {
             return null;
         }
-
         Collection<ChessMove> possibleMoves = piece.pieceMoves(board, startPosition);
-
         TeamColor playerColor = piece.getTeamColor();
-
         possibleMoves.removeIf(move -> !isMoveSafe(move, playerColor));
 
         return possibleMoves;
