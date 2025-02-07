@@ -174,11 +174,11 @@ public class ChessPiece {
         if (checkCastling && !this.hasMoved()) {
             // Attempt Kingside (short) castle.
             // Rook is assumed to be at column 8; ensure squares between are empty.
-            attemptCastling(moves, board, pos, 8, 7, 7);
+            attemptCastling(moves, board, pos, 8, 7);
 
             // Attempt Queenside (long) castle.
             // Rook is assumed to be at column 1; ensure squares between are empty.
-            attemptCastling(moves, board, pos, 1, 3, 3);
+            attemptCastling(moves, board, pos, 1, 3);
         }
     }
 
@@ -308,7 +308,7 @@ public class ChessPiece {
 
     private void attemptCastling(Collection<ChessMove> moves, ChessBoard board,
                                  ChessPosition kingPos, int rookColumn,
-                                 int throughColumn, int endColumn) {
+                                 int endColumn) {
         // Get the rook from the expected position.
         ChessPiece rook = board.getPiece(new ChessPosition(kingPos.getRow(), rookColumn));
         if (rook == null || rook.getPieceType() != PieceType.ROOK || rook.hasMoved()) {
