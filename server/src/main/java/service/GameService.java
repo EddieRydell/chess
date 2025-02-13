@@ -15,7 +15,6 @@ import chess.ChessGame;
 import java.util.List;
 
 public class GameService {
-
     private final DataAccess dao;
     private int nextGameID = 1;
 
@@ -25,8 +24,7 @@ public class GameService {
 
     public CreateGameResult createGame(CreateGameRequest request, String authToken)
             throws DataAccessException {
-
-        AuthData authData = requireValidAuth(authToken);
+        requireValidAuth(authToken);
 
         if (request.gameName() == null || request.gameName().isBlank()) {
             throw new DataAccessException("Bad request: gameName is missing/empty");
