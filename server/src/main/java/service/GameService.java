@@ -46,7 +46,7 @@ public class GameService {
         return new CreateGameResult(newID);
     }
 
-    public void joinGame(JoinGameRequest request, String authToken)
+    public JoinGameResult joinGame(JoinGameRequest request, String authToken)
             throws DataAccessException {
         AuthData authData = requireValidAuth(authToken);
         String username = authData.username();
@@ -95,7 +95,7 @@ public class GameService {
 
         dao.updateGame(game);
 
-        new JoinGameResult();
+        return new JoinGameResult();
     }
 
     public ListGamesResult listGames(String authToken) throws DataAccessException {
