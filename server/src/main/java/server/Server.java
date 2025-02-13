@@ -2,7 +2,10 @@ package server;
 
 import dataaccess.DataAccess;
 import dataaccess.MemoryDataAccess;
+import handlers.ClearHandler;
+import handlers.LoginHandler;
 import handlers.RegisterHandler;
+import service.ClearService;
 import service.UserService;
 import spark.*;
 
@@ -16,8 +19,11 @@ public class Server {
         // Register your endpoints and handle exceptions here.
         DataAccess dao = new MemoryDataAccess();
         UserService userService = new UserService(dao);
+        ClearService clearService = new ClearService(dao);
 
         Spark.post("/user", new RegisterHandler(userService));
+        Spark.delete("/db", new ClearHandler(clearService));
+        Spark.post("/session", new LoginHandler(userService));
 
         //This line initializes the server and can be removed once you have a functioning endpoint
         Spark.init();
