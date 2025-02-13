@@ -9,7 +9,6 @@ import spark.Response;
 import spark.Route;
 
 public class JoinGameHandler implements Route {
-
     private final GameService gameService;
     private final Gson gson = new Gson();
 

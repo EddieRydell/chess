@@ -9,11 +9,7 @@ import spark.Request;
 import spark.Response;
 import spark.Route;
 
-/**
- * Handles POST /session
- */
 public class LoginHandler implements Route {
-
     private final UserService userService;
     private final Gson gson = new Gson();
 

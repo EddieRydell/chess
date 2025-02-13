@@ -10,7 +10,6 @@ import spark.Response;
 import spark.Route;
 
 public class RegisterHandler implements Route {
-
     private final UserService userService;
     private final Gson gson = new Gson();
 
@@ -37,8 +36,7 @@ public class RegisterHandler implements Route {
         }
         catch (DataAccessException e) {
             if (e.getMessage().contains("User already exists")
-                    || e.getMessage().contains("already taken"))
-            {
+                    || e.getMessage().contains("already taken")) {
                 res.status(403);
                 return "{\"message\":\"Error: already taken\"}";
             }

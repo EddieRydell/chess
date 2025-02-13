@@ -10,10 +10,9 @@ import service.results.CreateGameResult;
 import service.results.JoinGameResult;
 import service.results.ListGamesResult;
 
-import chess.ChessGame;  // Assuming your shared ChessGame class is here
+import chess.ChessGame;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class GameService {
 
