@@ -4,6 +4,7 @@ import dataaccess.DataAccess;
 import dataaccess.MemoryDataAccess;
 import handlers.ClearHandler;
 import handlers.LoginHandler;
+import handlers.LogoutHandler;
 import handlers.RegisterHandler;
 import service.ClearService;
 import service.UserService;
@@ -22,8 +23,9 @@ public class Server {
         ClearService clearService = new ClearService(dao);
 
         Spark.post("/user", new RegisterHandler(userService));
-        Spark.delete("/db", new ClearHandler(clearService));
         Spark.post("/session", new LoginHandler(userService));
+        Spark.delete("/session", new LogoutHandler(userService));
+        Spark.delete("/db", new ClearHandler(clearService));
 
         //This line initializes the server and can be removed once you have a functioning endpoint
         Spark.init();

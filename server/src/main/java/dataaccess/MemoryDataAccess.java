@@ -4,6 +4,7 @@ import model.AuthData;
 import model.GameData;
 import model.UserData;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -29,38 +30,48 @@ public class MemoryDataAccess implements DataAccess {
 
     @Override
     public void createGame(GameData game) throws DataAccessException {
-
+//        if (games.containsKey(game.gameID())) {
+//            throw new DataAccessException("Game with ID " + game.gameID() + " already exists");
+//        }
+        //todo
+        games.put(game.gameID(), game);
     }
 
     @Override
     public GameData getGame(int gameID) throws DataAccessException {
-        return null;
+        return games.get(gameID);
     }
 
     @Override
     public List<GameData> listGames() throws DataAccessException {
-        return List.of();
+        return new ArrayList<>(games.values());
     }
 
     @Override
     public void updateGame(GameData game) throws DataAccessException {
-
+        if (!games.containsKey(game.gameID())) {
+            throw new DataAccessException("Game ID does not exist: " + game.gameID());
+        }
+        games.put(game.gameID(), game);
     }
 
 
     @Override
     public void createAuth(AuthData auth) throws DataAccessException {
-
+        if (authTokens.containsKey(auth.authToken())) {
+            throw new DataAccessException("authToken already exists");
+        }
+        authTokens.put(auth.authToken(), auth);
     }
 
     @Override
     public AuthData getAuth(String authToken) throws DataAccessException {
-        return null;
+        return authTokens.get(authToken);
     }
 
     @Override
     public void deleteAuth(String authToken) throws DataAccessException {
-
+        authTokens.remove(authToken);
     }
 
 
