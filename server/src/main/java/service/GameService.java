@@ -4,7 +4,6 @@ import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import model.AuthData;
 import model.GameData;
-import model.UserData;
 import service.requests.CreateGameRequest;
 import service.requests.JoinGameRequest;
 import service.results.CreateGameResult;
