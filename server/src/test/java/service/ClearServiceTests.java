@@ -9,14 +9,12 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class ClearServiceTest {
+class ClearServiceTests {
     private DataAccess dao;
     private ClearService clearService;
 
     @BeforeEach
-    void setup() throws DataAccessException {
-
-    }
+    void setup() throws DataAccessException {}
 
     @Test
     void testClearSuccess() throws DataAccessException {
