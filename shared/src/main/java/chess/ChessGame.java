@@ -118,7 +118,8 @@ public class ChessGame {
         board.addPiece(startPos, null);
         if (move.getPromotionPiece() == null) {
             board.addPiece(endPos, piece);
-        } else {
+        }
+        else {
             board.addPiece(endPos, new ChessPiece(currTurn, move.getPromotionPiece()));
         }
 
@@ -132,7 +133,8 @@ public class ChessGame {
                 board.addPiece(rookStart, null);
                 board.addPiece(rookEnd, rookPiece);
                 rookPiece.setHasMoved(true);
-            } else if (endPos.getColumn() == 3) { // Queenside castling
+            }
+            else if (endPos.getColumn() == 3) { // Queenside castling
                 ChessPosition rookStart = new ChessPosition(kingRow, 1);
                 ChessPosition rookEnd = new ChessPosition(kingRow, 4);
                 ChessPiece rookPiece = board.getPiece(rookStart);
@@ -158,7 +160,8 @@ public class ChessGame {
             else {
                 board.setEnPassantSquare(null);
             }
-        } else {
+        }
+        else {
             board.setEnPassantSquare(null);
         }
 

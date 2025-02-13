@@ -98,14 +98,15 @@ public class ChessBoard {
             sb.append(row).append(" "); // Row label
 
             for (int col = 1; col <= 8; col++) {
-                ChessPiece piece = board[row - 1][col - 1]; // Assuming board[row][col] indexing
+                ChessPiece piece = board[row - 1][col - 1];
                 if (piece == null) {
-                    sb.append(". "); // Empty square
-                } else {
+                    sb.append(". ");
+                }
+                else {
                     sb.append(getPieceChar(piece)).append(" ");
                 }
             }
-            sb.append(row).append("\n"); // Row label on the right side
+            sb.append(row).append("\n");
         }
 
         sb.append("  a b c d e f g h\n"); // Column labels again at the bottom
