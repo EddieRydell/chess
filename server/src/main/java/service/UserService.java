@@ -4,7 +4,11 @@ import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import model.AuthData;
 import model.UserData;
+import service.requests.LoginRequest;
+import service.requests.LogoutRequest;
 import service.requests.RegisterRequest;
+import service.results.LoginResult;
+import service.results.LogoutResult;
 import service.results.RegisterResult;
 
 import java.util.UUID;
@@ -29,5 +33,37 @@ public class UserService {
         dao.createAuth(authData);
 
         return new RegisterResult(request.username(), token);
+    }
+
+    public LoginResult login(LoginRequest request) throws DataAccessException {
+        if (request.username() == null || request.password() == null) {
+            throw new IllegalArgumentException("Missing username or password");
+        }
+
+        UserData user = dao.getUser(request.username());
+        if (user == null) {
+            throw new DataAccessException("Invalid username or password");
+        }
+
+        if (!user.password().equals(request.password())) {
+            throw new DataAccessException("Invalid username or password");
+        }
+
+        String token = UUID.randomUUID().toString();
+        AuthData authData = new AuthData(token, user.username());
+        dao.createAuth(authData);
+
+        return new LoginResult(user.username(), token);
+    }
+
+    public LogoutResult logout(LogoutRequest request) throws DataAccessException {
+        var authData = dao.getAuth(request.authToken());
+        if (authData == null) {
+            throw new DataAccessException("Invalid or expired auth token");
+        }
+
+        dao.deleteAuth(request.authToken());
+
+        return new LogoutResult();
     }
 }
