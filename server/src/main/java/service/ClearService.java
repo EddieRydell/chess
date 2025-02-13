@@ -11,6 +11,9 @@ public class ClearService {
     }
 
     public void clear() throws DataAccessException {
+        if (dao == null) {
+            throw new DataAccessException("DAO does not exist");
+        }
         dao.clear();
     }
 }
