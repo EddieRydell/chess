@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class GameService {
 
     private final DataAccess dao;
-    private final AtomicInteger nextGameID = new AtomicInteger(1);
+    private int nextGameID = 1;
 
     public GameService(DataAccess dao) {
         this.dao = dao;
@@ -33,7 +33,8 @@ public class GameService {
             throw new DataAccessException("Bad request: gameName is missing/empty");
         }
 
-        int newID = nextGameID.getAndIncrement();
+        int newID = nextGameID;
+        nextGameID++;
 
         GameData newGame = new GameData(
                 newID,
@@ -50,7 +51,6 @@ public class GameService {
 
     public void joinGame(JoinGameRequest request, String authToken)
             throws DataAccessException {
-
         AuthData authData = requireValidAuth(authToken);
         String username = authData.username();
 

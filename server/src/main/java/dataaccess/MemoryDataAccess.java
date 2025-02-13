@@ -30,10 +30,6 @@ public class MemoryDataAccess implements DataAccess {
 
     @Override
     public void createGame(GameData game) throws DataAccessException {
-//        if (games.containsKey(game.gameID())) {
-//            throw new DataAccessException("Game with ID " + game.gameID() + " already exists");
-//        }
-        //todo
         games.put(game.gameID(), game);
     }
 
