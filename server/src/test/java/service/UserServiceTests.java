@@ -1,4 +1,4 @@
-package java.service;
+package service;
 
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
@@ -16,10 +16,11 @@ import service.results.RegisterResult;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class UserServiceTest {
+class UserServiceTests {
 
     private DataAccess dao;
     private UserService userService;
+
 
     @BeforeEach
     void setup() {
