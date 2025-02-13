@@ -23,7 +23,7 @@ public class MemoryDataAccess implements DataAccess {
 
     @Override
     public UserData getUser(String username) throws DataAccessException {
-        return users.get(username); // might return null if not found
+        return users.get(username);
     }
 
 
