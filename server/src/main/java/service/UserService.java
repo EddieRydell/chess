@@ -4,6 +4,7 @@ import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import model.AuthData;
 import model.UserData;
+import org.mindrot.jbcrypt.BCrypt;
 import service.requests.LoginRequest;
 import service.requests.LogoutRequest;
 import service.requests.RegisterRequest;
@@ -45,7 +46,8 @@ public class UserService {
             throw new DataAccessException("Invalid username or password");
         }
 
-        if (!user.password().equals(request.password())) {
+        boolean valid = BCrypt.checkpw(request.password(), user.password());
+        if (!valid) {
             throw new DataAccessException("Invalid username or password");
         }
 

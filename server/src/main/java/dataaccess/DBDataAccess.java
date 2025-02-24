@@ -65,6 +65,15 @@ public class DBDataAccess implements DataAccess {
         }
     }
 
+    public boolean checkUserPassword(String username, String plaintextPassword) throws DataAccessException {
+        UserData user = getUser(username);
+        if (user == null) {
+            return false;
+        }
+
+        return BCrypt.checkpw(plaintextPassword, user.password());
+    }
+
     @Override
     public void createUser(UserData user) throws DataAccessException {
         final String sql = """
