@@ -5,6 +5,7 @@ import model.AuthData;
 import model.GameData;
 import model.UserData;
 import chess.ChessGame;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -70,6 +71,8 @@ public class DBDataAccess implements DataAccess {
             INSERT INTO userData (username, passwordHash, email)
             VALUES (?, ?, ?)
         """;
+
+        String hashedPass = BCrypt.hashpw(user.password(), BCrypt.gensalt());
 
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
