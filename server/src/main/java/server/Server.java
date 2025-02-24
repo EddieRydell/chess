@@ -1,7 +1,8 @@
 package server;
 
+import dataaccess.DBDataAccess;
 import dataaccess.DataAccess;
-import dataaccess.MemoryDataAccess;
+import dataaccess.DataAccessException;
 import handlers.*;
 import service.ClearService;
 import service.GameService;
@@ -16,7 +17,13 @@ public class Server {
         Spark.staticFiles.location("web");
 
         // Register your endpoints and handle exceptions here.
-        DataAccess dao = new MemoryDataAccess();
+        DataAccess dao;
+        try {
+            dao = new DBDataAccess();
+        }
+        catch (DataAccessException e) {
+            throw new RuntimeException(e);
+        }
         UserService userService = new UserService(dao);
         ClearService clearService = new ClearService(dao);
         GameService gameService = new GameService(dao);
