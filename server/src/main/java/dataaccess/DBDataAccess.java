@@ -96,6 +96,12 @@ public class DBDataAccess implements DataAccess {
 
     @Override
     public void createUser(UserData user) throws DataAccessException {
+        if (getUser(user.username()) != null) {
+            throw new DataAccessException("User already exists");
+        }
+
+        String hashedPass = BCrypt.hashpw(user.password(), BCrypt.gensalt());
+
         final String sql = """
             INSERT INTO userData (username, passwordHash, email)
             VALUES (?, ?, ?)
@@ -105,13 +111,15 @@ public class DBDataAccess implements DataAccess {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, user.username());
-            stmt.setString(2, "");
+            stmt.setString(2, hashedPass);
             stmt.setString(3, user.email());
 
             stmt.executeUpdate();
 
-        }
-        catch (SQLException e) {
+        } catch (SQLException e) {
+            if (e instanceof SQLIntegrityConstraintViolationException) {
+                throw new DataAccessException("User already exists: " + e.getMessage());
+            }
             throw new DataAccessException("Error inserting new user row: " + e.getMessage());
         }
     }
@@ -254,7 +262,10 @@ public class DBDataAccess implements DataAccess {
             stmt.setString(4, gameJson);
             stmt.setInt(5, game.gameID());
 
-            stmt.executeUpdate();
+            int rowsUpdated = stmt.executeUpdate();
+            if (rowsUpdated == 0) {
+                throw new DataAccessException("Game ID does not exist: " + game.gameID());
+            }
 
         }
         catch (SQLException e) {
@@ -269,6 +280,10 @@ public class DBDataAccess implements DataAccess {
             VALUES (?, ?)
         """;
 
+        if (getAuth(auth.authToken()) != null) {
+            throw new DataAccessException("authToken already exists");
+        }
+
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -276,8 +291,12 @@ public class DBDataAccess implements DataAccess {
             stmt.setString(2, auth.username());
 
             stmt.executeUpdate();
+
         }
         catch (SQLException e) {
+            if (e instanceof SQLIntegrityConstraintViolationException) {
+                throw new DataAccessException("Cannot create auth. " + e.getMessage());
+            }
             throw new DataAccessException("Error inserting auth token: " + e.getMessage());
         }
     }
