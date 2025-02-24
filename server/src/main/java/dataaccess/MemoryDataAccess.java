@@ -51,7 +51,6 @@ public class MemoryDataAccess implements DataAccess {
         games.put(game.gameID(), game);
     }
 
-
     @Override
     public void createAuth(AuthData auth) throws DataAccessException {
         if (authTokens.containsKey(auth.authToken())) {
