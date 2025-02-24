@@ -79,7 +79,7 @@ public class DBDataAccess implements DataAccess {
 
         }
         catch (SQLException e) {
-            throw new DataAccessException("Error writing hashed password to database: " + e.getMessage(), e);
+            throw new DataAccessException("Error writing hashed password to database: " + e.getMessage());
         }
     }
 
@@ -112,7 +112,7 @@ public class DBDataAccess implements DataAccess {
 
         }
         catch (SQLException e) {
-            throw new DataAccessException("Error inserting new user row: " + e.getMessage(), e);
+            throw new DataAccessException("Error inserting new user row: " + e.getMessage());
         }
     }
 

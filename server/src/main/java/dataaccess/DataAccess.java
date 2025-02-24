@@ -20,4 +20,8 @@ public interface DataAccess {
     void deleteAuth(String authToken) throws DataAccessException;
 
     void clear() throws DataAccessException;
+
+    void storeUserPassword(String username, String password) throws DataAccessException;
+
+    boolean verifyUser(String username, String password) throws DataAccessException;
 }

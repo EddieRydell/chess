@@ -76,4 +76,14 @@ public class MemoryDataAccess implements DataAccess {
         games.clear();
         authTokens.clear();
     }
+
+    @Override
+    public void storeUserPassword(String username, String password) throws DataAccessException {
+
+    }
+
+    @Override
+    public boolean verifyUser(String username, String password) throws DataAccessException {
+        return true;
+    }
 }

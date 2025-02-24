@@ -26,8 +26,9 @@ public class UserService {
             throw new IllegalArgumentException("Missing required fields");
         }
 
-        var user = new UserData(request.username(), request.password(), request.email());
-        dao.createUser(user);
+        UserData userRow = new UserData(request.username(), "", request.email());
+        dao.createUser(userRow);
+        dao.storeUserPassword(request.username(), request.password());
 
         String token = UUID.randomUUID().toString();
         var authData = new AuthData(token, request.username());
@@ -46,8 +47,8 @@ public class UserService {
             throw new DataAccessException("Invalid username or password");
         }
 
-        boolean valid = BCrypt.checkpw(request.password(), user.password());
-        if (!valid) {
+        boolean verified = dao.verifyUser(request.username(), request.password());
+        if (!verified) {
             throw new DataAccessException("Invalid username or password");
         }
 
