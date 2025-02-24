@@ -21,7 +21,7 @@ public class DBDataAccess implements DataAccess {
 
     @Override
     public UserData getUser(String username) throws DataAccessException {
-
+        return null;
     }
 
     @Override
