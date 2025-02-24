@@ -78,7 +78,7 @@ public class DBDataAccess implements DataAccess {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, user.username());
-            stmt.setString(2, user.password());
+            stmt.setString(2, hashedPass);
             stmt.setString(3, user.email());
 
             stmt.executeUpdate();
@@ -111,10 +111,11 @@ public class DBDataAccess implements DataAccess {
                 }
             }
 
-        } catch (SQLException e) {
+        }
+        catch (SQLException e) {
             throw new DataAccessException("Error retrieving user by username: " + e.getMessage());
         }
-        return null; // not found
+        return null;
     }
 
     @Override
