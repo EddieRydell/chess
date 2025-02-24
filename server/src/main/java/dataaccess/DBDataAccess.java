@@ -65,13 +65,33 @@ public class DBDataAccess implements DataAccess {
         }
     }
 
-    public boolean checkUserPassword(String username, String plaintextPassword) throws DataAccessException {
+    public void storeUserPassword(String username, String clearTextPassword) throws DataAccessException {
+        String hashedPassword = BCrypt.hashpw(clearTextPassword, BCrypt.gensalt());
+
+        final String sql = "UPDATE userData SET passwordHash = ? WHERE username = ?";
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, hashedPassword);
+            stmt.setString(2, username);
+            stmt.executeUpdate();
+
+        }
+        catch (SQLException e) {
+            throw new DataAccessException("Error writing hashed password to database: " + e.getMessage(), e);
+        }
+    }
+
+
+    public boolean verifyUser(String username, String providedClearTextPassword) throws DataAccessException {
         UserData user = getUser(username);
         if (user == null) {
             return false;
         }
 
-        return BCrypt.checkpw(plaintextPassword, user.password());
+        String hashedPassword = user.password();
+        return BCrypt.checkpw(providedClearTextPassword, hashedPassword);
     }
 
     @Override
@@ -81,20 +101,18 @@ public class DBDataAccess implements DataAccess {
             VALUES (?, ?, ?)
         """;
 
-        String hashedPass = BCrypt.hashpw(user.password(), BCrypt.gensalt());
-
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, user.username());
-            stmt.setString(2, hashedPass);
+            stmt.setString(2, "");
             stmt.setString(3, user.email());
 
             stmt.executeUpdate();
 
         }
         catch (SQLException e) {
-            throw new DataAccessException("Error inserting new user: " + e.getMessage());
+            throw new DataAccessException("Error inserting new user row: " + e.getMessage(), e);
         }
     }
 
