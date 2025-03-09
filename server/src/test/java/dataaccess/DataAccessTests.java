@@ -3,99 +3,86 @@ package dataaccess;
 import chess.ChessGame;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
-import dataaccess.MemoryDataAccess;
+import dataaccess.DBDataAccess;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import service.ClearService;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class DataAccessTests {
+
+    private static DataAccess dao;
+
+    @BeforeAll
+    static void init() throws DataAccessException {
+        dao = new DBDataAccess();
+    }
+
+    @BeforeEach
+    void setUp() throws DataAccessException {
+        dao.clear();
+        dao.createUser(new UserData("testUser", "password", "test@mail.com"));
+        dao.createUser(new UserData("user1", "pass", "user1@mail.com"));
+        dao.createUser(new UserData("a", "pass", "a@mail.com"));
+        dao.createUser(new UserData("b", "pass", "b@mail.com"));
+        dao.createUser(new UserData("c", "pass", "c@mail.com"));
+    }
+
+    @AfterEach
+    void tearDown() throws DataAccessException {
+        dao.clear();
+    }
+
     @Test
     public void testCreateUserPositive() throws DataAccessException {
-        DataAccess dao = new DBDataAccess();
-        dao.clear();
-
-        UserData user = new UserData("testUser", "password", "test@mail.com");
+        UserData user = new UserData("newUser", "password", "newUser@mail.com");
         dao.createUser(user);
 
-        UserData retrieved = dao.getUser("testUser");
+        UserData retrieved = dao.getUser("newUser");
         assertNotNull(retrieved);
-        assertEquals("testUser", retrieved.username());
-        assertEquals("test@mail.com", retrieved.email());
+        assertEquals("newUser", retrieved.username());
+        assertEquals("newUser@mail.com", retrieved.email());
     }
 
     @Test
     public void testCreateUserNegativeDuplicate() throws DataAccessException {
-        DataAccess dao = new DBDataAccess();
-        dao.clear();
-
-        UserData user = new UserData("testUser", "password", "test@mail.com");
-        dao.createUser(user);
-
-        // Expect an exception when trying to create the same user again.
-        assertThrows(DataAccessException.class, () -> dao.createUser(user));
+        UserData duplicate = new UserData("testUser", "password", "test@mail.com");
+        assertThrows(DataAccessException.class, () -> dao.createUser(duplicate));
     }
 
     @Test
     public void testGetUserPositive() throws DataAccessException {
-        DataAccess dao = new DBDataAccess();
-        dao.clear();
-
-        UserData user = new UserData("testUser", "password", "test@mail.com");
-        dao.createUser(user);
-
         UserData retrieved = dao.getUser("testUser");
         assertNotNull(retrieved);
     }
 
     @Test
     public void testGetUserNegativeNotFound() throws DataAccessException {
-        DataAccess dao = new DBDataAccess();
-        dao.clear();
-
         UserData retrieved = dao.getUser("nonExistentUser");
         assertNull(retrieved);
     }
 
     @Test
     public void testStoreAndVerifyPasswordPositive() throws DataAccessException {
-        DataAccess dao = new DBDataAccess();
-        dao.clear();
-
-        UserData user = new UserData("testUser", "initialPassword", "test@mail.com");
-        dao.createUser(user);
-
-        // Update the password
         dao.storeUserPassword("testUser", "newPassword");
-
-        // Correct password should return true
         assertTrue(dao.verifyUser("testUser", "newPassword"));
     }
 
     @Test
     public void testVerifyPasswordNegative() throws DataAccessException {
-        DataAccess dao = new DBDataAccess();
-        dao.clear();
-
-        UserData user = new UserData("testUser", "initialPassword", "test@mail.com");
-        dao.createUser(user);
         dao.storeUserPassword("testUser", "newPassword");
-
-        // Incorrect password should return false
         assertFalse(dao.verifyUser("testUser", "wrongPassword"));
     }
 
     @Test
     public void testCreateGamePositive() throws DataAccessException {
-        DataAccess dao = new DBDataAccess();
-        dao.clear();
-
         GameData game = new GameData(1, null, null, "Test Game", new ChessGame());
         dao.createGame(game);
 
@@ -106,9 +93,6 @@ class DataAccessTests {
 
     @Test
     public void testCreateGameNegativeDuplicateID() throws DataAccessException {
-        DataAccess dao = new DBDataAccess();
-        dao.clear();
-
         GameData game = new GameData(1, null, null, "Test Game", new ChessGame());
         dao.createGame(game);
 
@@ -118,9 +102,6 @@ class DataAccessTests {
 
     @Test
     public void testGetGamePositive() throws DataAccessException {
-        DataAccess dao = new DBDataAccess();
-        dao.clear();
-
         GameData game = new GameData(1, null, null, "Test Game", new ChessGame());
         dao.createGame(game);
 
@@ -131,18 +112,12 @@ class DataAccessTests {
 
     @Test
     public void testGetGameNegativeNotFound() throws DataAccessException {
-        DataAccess dao = new DBDataAccess();
-        dao.clear();
-
         GameData retrieved = dao.getGame(999);
         assertNull(retrieved);
     }
 
     @Test
     public void testListGamesPositive() throws DataAccessException {
-        DataAccess dao = new DBDataAccess();
-        dao.clear();
-
         GameData game1 = new GameData(1, null, null, "Game 1", new ChessGame());
         GameData game2 = new GameData(2, "user1", null, "Game 2", new ChessGame());
         dao.createGame(game1);
@@ -154,22 +129,15 @@ class DataAccessTests {
 
     @Test
     public void testListGamesNegativeEmpty() throws DataAccessException {
-        DataAccess dao = new DBDataAccess();
-        dao.clear();
-
         List<GameData> games = dao.listGames();
         assertTrue(games.isEmpty());
     }
 
     @Test
     public void testUpdateGamePositive() throws DataAccessException {
-        DataAccess dao = new DBDataAccess();
-        dao.clear();
-
         GameData game = new GameData(1, null, null, "Test Game", new ChessGame());
         dao.createGame(game);
 
-        // Simulate a join: update whiteUsername
         GameData updatedGame = new GameData(1, "testUser", null, "Test Game", new ChessGame());
         dao.updateGame(updatedGame);
 
@@ -179,18 +147,12 @@ class DataAccessTests {
 
     @Test
     public void testUpdateGameNegativeNonexistent() throws DataAccessException {
-        DataAccess dao = new DBDataAccess();
-        dao.clear();
-
         GameData nonExistent = new GameData(999, "user", null, "No Game", new ChessGame());
         assertThrows(DataAccessException.class, () -> dao.updateGame(nonExistent));
     }
 
     @Test
     public void testCreateAuthPositive() throws DataAccessException {
-        DataAccess dao = new DBDataAccess();
-        dao.clear();
-
         AuthData auth = new AuthData("token123", "testUser");
         dao.createAuth(auth);
 
@@ -201,20 +163,13 @@ class DataAccessTests {
 
     @Test
     public void testCreateAuthNegativeDuplicate() throws DataAccessException {
-        DataAccess dao = new DBDataAccess();
-        dao.clear();
-
         AuthData auth = new AuthData("token123", "testUser");
         dao.createAuth(auth);
-
         assertThrows(DataAccessException.class, () -> dao.createAuth(auth));
     }
 
     @Test
     public void testGetAuthPositive() throws DataAccessException {
-        DataAccess dao = new DBDataAccess();
-        dao.clear();
-
         AuthData auth = new AuthData("token123", "testUser");
         dao.createAuth(auth);
 
@@ -224,21 +179,14 @@ class DataAccessTests {
 
     @Test
     public void testGetAuthNegativeNotFound() throws DataAccessException {
-        DataAccess dao = new DBDataAccess();
-        dao.clear();
-
         AuthData retrieved = dao.getAuth("nonexistent");
         assertNull(retrieved);
     }
 
     @Test
     public void testDeleteAuthPositive() throws DataAccessException {
-        DataAccess dao = new DBDataAccess();
-        dao.clear();
-
         AuthData auth = new AuthData("token123", "testUser");
         dao.createAuth(auth);
-
         dao.deleteAuth("token123");
         AuthData retrieved = dao.getAuth("token123");
         assertNull(retrieved);
@@ -246,12 +194,6 @@ class DataAccessTests {
 
     @Test
     public void testClearPositive() throws DataAccessException {
-        DataAccess dao = new DBDataAccess();
-
-        dao.createUser(new UserData("user1", "pass", "user1@mail.com"));
-        dao.createGame(new GameData(1, null, null, "Game 1", new ChessGame()));
-        dao.createAuth(new AuthData("token1", "user1"));
-
         dao.clear();
 
         assertNull(dao.getUser("user1"));
