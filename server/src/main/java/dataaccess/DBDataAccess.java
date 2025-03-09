@@ -22,31 +22,28 @@ public class DBDataAccess implements DataAccess {
     private final String[] createStatements = {
             """
             CREATE TABLE IF NOT EXISTS userData (
-              username      VARCHAR(50) NOT NULL,
-              passwordHash  VARCHAR(200) NOT NULL,
-              email         VARCHAR(100),
-              PRIMARY KEY (username)
+                username      VARCHAR(50) NOT NULL,
+                passwordHash  VARCHAR(200) NOT NULL,
+                email         VARCHAR(100),
+                PRIMARY KEY (username)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
             """,
             """
             CREATE TABLE IF NOT EXISTS authData (
-              authToken VARCHAR(100) PRIMARY KEY,
-              username  VARCHAR(50) NOT NULL,
-              FOREIGN KEY (username) REFERENCES userData(username)
+                authToken VARCHAR(100) PRIMARY KEY,
+                username  VARCHAR(50) NOT NULL,
+                FOREIGN KEY (username) REFERENCES userData(username)
                 ON DELETE CASCADE
                 ON UPDATE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
             """,
             """
             CREATE TABLE IF NOT EXISTS gameData (
-              gameID         INT AUTO_INCREMENT PRIMARY KEY,
-              gameName       VARCHAR(100) DEFAULT NULL,
-              whiteUsername  VARCHAR(50) DEFAULT NULL,
-              blackUsername  VARCHAR(50) DEFAULT NULL,
-              gameJSON       TEXT NOT NULL,
-            
-              FOREIGN KEY (whiteUsername) REFERENCES userData(username),
-              FOREIGN KEY (blackUsername) REFERENCES userData(username)
+                gameID INT AUTO_INCREMENT PRIMARY KEY,
+                gameName VARCHAR(100),
+                whiteUsername VARCHAR(50),
+                blackUsername VARCHAR(50),
+                gameJSON TEXT NOT NULL
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
             """
     };
