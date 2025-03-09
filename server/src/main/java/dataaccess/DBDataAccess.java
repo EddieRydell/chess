@@ -153,23 +153,23 @@ public class DBDataAccess implements DataAccess {
     @Override
     public void createGame(GameData game) throws DataAccessException {
         final String sql = """
-            INSERT INTO gameData (gameName, whiteUsername, blackUsername, gameJSON)
-            VALUES (?, ?, ?, ?)
-        """;
+        INSERT INTO gameData (gameID, gameName, whiteUsername, blackUsername, gameJSON)
+        VALUES (?, ?, ?, ?, ?)
+    """;
 
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, game.gameName());
-            stmt.setString(2, game.whiteUsername());
-            stmt.setString(3, game.blackUsername());
+            stmt.setInt(1, game.gameID());
+            stmt.setString(2, game.gameName());
+            stmt.setString(3, game.whiteUsername());
+            stmt.setString(4, game.blackUsername());
             String gameJson = gson.toJson(game.game());
-            stmt.setString(4, gameJson);
+            stmt.setString(5, gameJson);
 
             stmt.executeUpdate();
 
-        }
-        catch (SQLException e) {
+        } catch (SQLException e) {
             throw new DataAccessException("Error inserting new game: " + e.getMessage());
         }
     }
@@ -243,18 +243,26 @@ public class DBDataAccess implements DataAccess {
 
     @Override
     public void updateGame(GameData game) throws DataAccessException {
+        GameData currentGame = getGame(game.gameID());
+        if (currentGame == null) {
+            throw new DataAccessException("Game ID does not exist: " + game.gameID());
+        }
+
+        String updatedWhite = game.whiteUsername() != null ? game.whiteUsername() : currentGame.whiteUsername();
+        String updatedBlack = game.blackUsername() != null ? game.blackUsername() : currentGame.blackUsername();
+
         final String sql = """
-            UPDATE gameData
-            SET gameName = ?, whiteUsername = ?, blackUsername = ?, gameJSON = ?
-            WHERE gameID = ?
-        """;
+        UPDATE gameData
+        SET gameName = ?, whiteUsername = ?, blackUsername = ?, gameJSON = ?
+        WHERE gameID = ?
+    """;
 
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, game.gameName());
-            stmt.setString(2, game.whiteUsername());
-            stmt.setString(3, game.blackUsername());
+            stmt.setString(2, updatedWhite);
+            stmt.setString(3, updatedBlack);
             String gameJson = gson.toJson(game.game());
             stmt.setString(4, gameJson);
             stmt.setInt(5, game.gameID());
@@ -264,29 +272,25 @@ public class DBDataAccess implements DataAccess {
                 throw new DataAccessException("Game ID does not exist: " + game.gameID());
             }
 
-        }
-        catch (SQLException e) {
+        } catch (SQLException e) {
             throw new DataAccessException("Error updating game: " + e.getMessage());
         }
     }
 
+
+
     @Override
     public void createAuth(AuthData auth) throws DataAccessException {
         final String sql = """
-            INSERT INTO authData (authToken, username)
-            VALUES (?, ?)
-        """;
-
-        if (getAuth(auth.authToken()) != null) {
-            throw new DataAccessException("authToken already exists");
-        }
+        INSERT INTO authData (authToken, username)
+        VALUES (?, ?)
+    """;
 
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, auth.authToken());
             stmt.setString(2, auth.username());
-
             stmt.executeUpdate();
 
         }
@@ -297,6 +301,7 @@ public class DBDataAccess implements DataAccess {
             throw new DataAccessException("Error inserting auth token: " + e.getMessage());
         }
     }
+
 
     @Override
     public AuthData getAuth(String authToken) throws DataAccessException {
