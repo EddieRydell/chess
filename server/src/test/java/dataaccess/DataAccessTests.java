@@ -102,12 +102,13 @@ class DataAccessTests {
 
     @Test
     public void testGetGamePositive() throws DataAccessException {
-        GameData game = new GameData(1, null, null, "Test Game", new ChessGame());
+        GameData game = new GameData(1,
+                "hi", "micromanagement", "Different 1", new ChessGame());
         dao.createGame(game);
 
         GameData retrieved = dao.getGame(1);
         assertNotNull(retrieved);
-        assertEquals("Test Game", retrieved.gameName());
+        assertEquals("Different 1", retrieved.gameName());
     }
 
     @Test
