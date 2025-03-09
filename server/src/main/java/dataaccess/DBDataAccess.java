@@ -39,7 +39,7 @@ public class DBDataAccess implements DataAccess {
             """,
             """
             CREATE TABLE IF NOT EXISTS gameData (
-                gameID INT AUTO_INCREMENT PRIMARY KEY,
+                gameID INT PRIMARY KEY,
                 gameName VARCHAR(100),
                 whiteUsername VARCHAR(50),
                 blackUsername VARCHAR(50),
