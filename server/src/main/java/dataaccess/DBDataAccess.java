@@ -80,7 +80,6 @@ public class DBDataAccess implements DataAccess {
         }
     }
 
-
     public boolean verifyUser(String username, String providedClearTextPassword) throws DataAccessException {
         UserData user = getUser(username);
         if (user == null) {
