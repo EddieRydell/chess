@@ -3,7 +3,6 @@ package client;
 import org.junit.jupiter.api.*;
 import server.Server;
 
-
 public class ServerFacadeTests {
 
     private static Server server;
