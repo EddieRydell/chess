@@ -6,12 +6,6 @@ import model.AuthData;
 import model.GameData;
 import server.ServerFacade;
 
-/**
- * ChessClient:
- *  - Interprets console-like commands (e.g. "login user pass")
- *  - Communicates with the server via ServerFacade
- *  - Maintains a simple logged-in / logged-out state
- */
 public class ChessClient {
 
     private enum State {
@@ -25,24 +19,11 @@ public class ChessClient {
     private final ServerFacade server;
     private final String serverUrl;
 
-    /**
-     * Create a ChessClient with the given server URL.
-     * Example: new ChessClient("http://localhost:8080");
-     */
     public ChessClient(String serverUrl) {
         this.serverUrl = serverUrl;
         this.server = new ServerFacade(serverUrl);
     }
 
-    /**
-     * Evaluate a single line of user input, e.g.:
-     *   "login alice mypassword"
-     *   "list"
-     *   "create BestGameEver"
-     *
-     * Returns a string response to display.
-     * If something goes wrong, returns an error message.
-     */
     public String eval(String input) {
         try {
             var tokens = input.trim().split("\\s+");
@@ -65,14 +46,9 @@ public class ChessClient {
                 default          -> "Unknown command. Type 'help' for options.";
             };
         } catch (RuntimeException ex) {
-            // Catch all errors and show them as user-friendly messages:
             return "Error: " + ex.getMessage();
         }
     }
-
-    // ----------------------------------------------------
-    // Command Handlers
-    // ----------------------------------------------------
 
     private String doLogin(String[] params) {
         if (params.length < 2) {
@@ -81,7 +57,7 @@ public class ChessClient {
         var username = params[0];
         var password = params[1];
 
-        var authData = server.login(username, password); // throws RuntimeException if failed
+        var authData = server.login(username, password);
         currentUser = authData;
         state = State.LOGGEDIN;
         return "Login successful for user '" + username + "'";
@@ -156,7 +132,6 @@ public class ChessClient {
             throw new RuntimeException("Color must be 'white' or 'black'.");
         }
 
-        // Retrieve fresh game list
         var games = server.listGames(currentUser.authToken());
         if (gameNumber < 0 || gameNumber >= games.size()) {
             throw new RuntimeException("Game number out of range.");
