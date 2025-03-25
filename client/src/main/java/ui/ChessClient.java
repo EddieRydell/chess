@@ -165,31 +165,40 @@ public class ChessClient {
 
     private String drawBoard(ChessBoard board, String perspective) {
         StringBuilder sb = new StringBuilder();
-
         boolean isWhite = perspective.equalsIgnoreCase("WHITE");
 
-        // Column labels
+        // Column labels (files)
         String[] files = {"a", "b", "c", "d", "e", "f", "g", "h"};
         if (!isWhite) {
             Collections.reverse(Arrays.asList(files));
         }
 
+        // Print top column labels
         sb.append("  ");
         for (String file : files) {
             sb.append(" ").append(file).append(" ");
         }
         sb.append("\n");
 
-        // Rows
-        for (int row = 0; row < 8; row++) {
-            int actualRow = isWhite ? 8 - row : row + 1;
+        // Loop over rows.
+        // For white perspective, rows 8 down to 1; for black, rows 1 to 8.
+        for (int r = 0; r < 8; r++) {
+            int actualRow = isWhite ? 8 - r : r + 1;
             sb.append(actualRow).append(" ");
-            for (int col = 0; col < 8; col++) {
-                int actualCol = isWhite ? col : 7 - col;
 
-                ChessPiece piece = board.getPiece(new ChessPosition(8 - actualRow, actualCol));
-                boolean isLightSquare = (actualRow + actualCol) % 2 == 0;
-                String bgColor = isLightSquare ? EscapeSequences.SET_BG_COLOR_LIGHT_GREY : EscapeSequences.SET_BG_COLOR_DARK_GREY;
+            // Loop over columns.
+            // For white perspective, columns 1 to 8; for black, columns 8 down to 1.
+            for (int c = 0; c < 8; c++) {
+                int actualCol = isWhite ? c + 1 : 8 - c;
+
+                // Since the board is 1-indexed, we use actualRow and actualCol directly.
+                ChessPiece piece = board.getPiece(new ChessPosition(actualRow, actualCol));
+
+                // Standard chessboards have a1 as a dark square.
+                boolean isDarkSquare = (actualRow + actualCol) % 2 == 0;
+                String bgColor = isDarkSquare
+                        ? EscapeSequences.SET_BG_COLOR_DARK_GREY
+                        : EscapeSequences.SET_BG_COLOR_LIGHT_GREY;
 
                 String pieceStr = EscapeSequences.EMPTY;
                 if (piece != null) {
@@ -201,7 +210,7 @@ public class ChessClient {
             sb.append(" ").append(actualRow).append("\n");
         }
 
-        // Column labels again
+        // Print bottom column labels
         sb.append("  ");
         for (String file : files) {
             sb.append(" ").append(file).append(" ");
@@ -210,7 +219,6 @@ public class ChessClient {
 
         return sb.toString();
     }
-
 
     private String doJoinGame(String[] params) {
         assertLoggedIn();
