@@ -6,6 +6,9 @@ import com.sun.nio.sctp.NotificationHandler;
 
 import java.util.Scanner;
 
+import static java.awt.Color.*;
+import static org.glassfish.grizzly.Interceptor.RESET;
+
 public class Repl implements NotificationHandler {
 
     private final ChessClient client;
@@ -15,7 +18,7 @@ public class Repl implements NotificationHandler {
     }
 
     public void run() {
-        System.out.println("\uD83D\uDC36 Welcome to the pet store. Sign in to start.");
+        System.out.println("Welcome to the Chess Game");
         System.out.print(client.help());
 
         Scanner scanner = new Scanner(System.in);

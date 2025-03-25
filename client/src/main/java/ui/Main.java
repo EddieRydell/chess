@@ -4,6 +4,7 @@ import server.Server;
 
 import model.AuthData;
 import model.GameData;
+import server.ServerFacade;
 
 import java.util.ArrayList;
 import java.util.List;
