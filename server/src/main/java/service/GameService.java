@@ -20,6 +20,12 @@ public class GameService {
 
     public GameService(DataAccess dao) {
         this.dao = dao;
+        int maxID = 0;
+        try {
+            maxID = dao.getMaxGameID();
+        }
+        catch (DataAccessException ignored) {}
+        nextGameID = maxID + 1;
     }
 
     public GameData getGame(int gameID, String token) throws DataAccessException {

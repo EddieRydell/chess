@@ -14,6 +14,10 @@ public class MemoryDataAccess implements DataAccess {
     private final Map<Integer, GameData> games = new HashMap<>();
     private final Map<String, AuthData> authTokens = new HashMap<>();
 
+    public int getMaxGameID() throws DataAccessException {
+        return 0;
+    }
+
     @Override
     public void createUser(UserData user) throws DataAccessException {
         if (users.containsKey(user.username())) {

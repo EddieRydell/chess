@@ -53,6 +53,11 @@ public class ServerFacade {
         makeRequest("POST", path, body, null, authToken);
     }
 
+    public GameData getGame(String authToken, int gameId) {
+        String path = "/game/" + gameId;
+        return makeRequest("GET", path, null, GameData.class, authToken);
+    }
+
     public List<GameData> listGames(String authToken) {
         record GameListResponse(GameData[] games) {}
         GameListResponse response = makeRequest("GET", "/game", null, GameListResponse.class, authToken);

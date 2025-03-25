@@ -10,6 +10,8 @@ public interface DataAccess {
     void createUser(UserData user) throws DataAccessException;
     UserData getUser(String username) throws DataAccessException;
 
+    int getMaxGameID() throws DataAccessException;
+
     void createGame(GameData game) throws DataAccessException;
     GameData getGame(int gameID) throws DataAccessException;
     List<GameData> listGames() throws DataAccessException;

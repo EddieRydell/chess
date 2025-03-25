@@ -48,6 +48,26 @@ public class DBDataAccess implements DataAccess {
             """
     };
 
+    public int getMaxGameID() throws DataAccessException {
+        final String sql = "SELECT COALESCE(MAX(gameID), 0) AS max_id FROM gameData";
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+                return rs.getInt("max_id");
+            }
+            else {
+                return 0;
+            }
+
+        }
+        catch (SQLException e) {
+            throw new DataAccessException("Error retrieving max gameID: " + e.getMessage());
+        }
+    }
+
     private void configureDatabase() throws DataAccessException {
         DatabaseManager.createDatabase();
         try (var conn = DatabaseManager.getConnection()) {
@@ -276,8 +296,6 @@ public class DBDataAccess implements DataAccess {
         }
     }
 
-
-
     @Override
     public void createAuth(AuthData auth) throws DataAccessException {
         final String sql = """
@@ -300,7 +318,6 @@ public class DBDataAccess implements DataAccess {
             throw new DataAccessException("Error inserting auth token: " + e.getMessage());
         }
     }
-
 
     @Override
     public AuthData getAuth(String authToken) throws DataAccessException {

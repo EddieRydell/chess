@@ -88,7 +88,6 @@ public class ChessBoard {
         enPassantSquare = null;
     }
 
-
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

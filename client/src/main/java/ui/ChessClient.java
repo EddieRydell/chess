@@ -1,11 +1,18 @@
 package ui;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
+import chess.ChessBoard;
+import chess.ChessPiece;
+import chess.ChessPosition;
 import model.AuthData;
 import model.GameData;
 import server.ServerFacade;
+
+import static chess.ChessGame.TeamColor.BLACK;
+import static chess.ChessGame.TeamColor.WHITE;
 
 public class ChessClient {
 
@@ -135,6 +142,76 @@ public class ChessClient {
         return sb.toString();
     }
 
+    private String getPieceEmoji(ChessPiece piece) {
+        return switch (piece.getTeamColor()) {
+            case WHITE -> switch (piece.getPieceType()) {
+                case KING -> EscapeSequences.WHITE_KING;
+                case QUEEN -> EscapeSequences.WHITE_QUEEN;
+                case BISHOP -> EscapeSequences.WHITE_BISHOP;
+                case KNIGHT -> EscapeSequences.WHITE_KNIGHT;
+                case ROOK -> EscapeSequences.WHITE_ROOK;
+                case PAWN -> EscapeSequences.WHITE_PAWN;
+            };
+            case BLACK -> switch (piece.getPieceType()) {
+                case KING -> EscapeSequences.BLACK_KING;
+                case QUEEN -> EscapeSequences.BLACK_QUEEN;
+                case BISHOP -> EscapeSequences.BLACK_BISHOP;
+                case KNIGHT -> EscapeSequences.BLACK_KNIGHT;
+                case ROOK -> EscapeSequences.BLACK_ROOK;
+                case PAWN -> EscapeSequences.BLACK_PAWN;
+            };
+        };
+    }
+
+    private String drawBoard(ChessBoard board, String perspective) {
+        StringBuilder sb = new StringBuilder();
+
+        boolean isWhite = perspective.equalsIgnoreCase("WHITE");
+
+        // Column labels
+        String[] files = {"a", "b", "c", "d", "e", "f", "g", "h"};
+        if (!isWhite) {
+            Collections.reverse(Arrays.asList(files));
+        }
+
+        sb.append("  ");
+        for (String file : files) {
+            sb.append(" ").append(file).append(" ");
+        }
+        sb.append("\n");
+
+        // Rows
+        for (int row = 0; row < 8; row++) {
+            int actualRow = isWhite ? 8 - row : row + 1;
+            sb.append(actualRow).append(" ");
+            for (int col = 0; col < 8; col++) {
+                int actualCol = isWhite ? col : 7 - col;
+
+                ChessPiece piece = board.getPiece(new ChessPosition(8 - actualRow, actualCol));
+                boolean isLightSquare = (actualRow + actualCol) % 2 == 0;
+                String bgColor = isLightSquare ? EscapeSequences.SET_BG_COLOR_LIGHT_GREY : EscapeSequences.SET_BG_COLOR_DARK_GREY;
+
+                String pieceStr = EscapeSequences.EMPTY;
+                if (piece != null) {
+                    pieceStr = getPieceEmoji(piece);
+                }
+
+                sb.append(bgColor).append(pieceStr).append(EscapeSequences.RESET_BG_COLOR);
+            }
+            sb.append(" ").append(actualRow).append("\n");
+        }
+
+        // Column labels again
+        sb.append("  ");
+        for (String file : files) {
+            sb.append(" ").append(file).append(" ");
+        }
+        sb.append("\n");
+
+        return sb.toString();
+    }
+
+
     private String doJoinGame(String[] params) {
         assertLoggedIn();
         if (params.length < 2) {
@@ -147,8 +224,8 @@ public class ChessClient {
             throw new RuntimeException("Invalid game number.");
         }
 
-        var color = params[1].toUpperCase();
-        if (!color.equals("WHITE") && !color.equals("BLACK")) {
+        var color = params[1].toLowerCase();
+        if (!color.equals("white") && !color.equals("black")) {
             throw new RuntimeException("Color must be 'white' or 'black'.");
         }
 
@@ -159,7 +236,12 @@ public class ChessClient {
         var chosenGame = games.get(gameNumber);
 
         server.joinGame(currentUser.authToken(), chosenGame.gameID(), color);
-        return "Joined game '" + chosenGame.gameName() + "' as " + color;
+
+        GameData updatedGame = server.getGame(currentUser.authToken(), chosenGame.gameID());
+
+        String boardString = drawBoard(updatedGame.game().getBoard(), color);
+
+        return "Joined game '" + chosenGame.gameName() + "' as " + color + "\n\n" + boardString;
     }
 
     private String doObserveGame(String[] params) {
