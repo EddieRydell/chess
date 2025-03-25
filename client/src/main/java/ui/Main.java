@@ -23,7 +23,6 @@ public class Main {
         boolean running = true;
         while (running) {
             if (!isLoggedIn) {
-                // === Prelogin UI ===
                 System.out.println("\n=== Prelogin ===");
                 System.out.print("> ");
                 String command = sc.nextLine().trim().toLowerCase();
