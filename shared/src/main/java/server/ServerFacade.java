@@ -10,6 +10,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ServerFacade {
     private final String baseUrl;
@@ -124,21 +125,21 @@ public class ServerFacade {
 
     private static void throwIfNotSuccessful(HttpURLConnection http) throws IOException {
         int status = http.getResponseCode();
-        if (status < 200 || status >= 300) {
-            StringBuilder sb = new StringBuilder();
-            try (InputStream errorStream = http.getErrorStream()) {
-                if (errorStream != null) {
-                    try (BufferedReader br = new BufferedReader(new InputStreamReader(errorStream))) {
-                        String line;
-                        while ((line = br.readLine()) != null) {
-                            sb.append(line).append("\n");
-                        }
-                    }
-                }
-            }
-            throw new RuntimeException("HTTP Error " + status + ": " + sb);
+        if (status >= 200 && status < 300) {
+            return;
         }
+
+        String errorMessage = "";
+        InputStream errorStream = http.getErrorStream();
+        if (errorStream != null) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream))) {
+                errorMessage = reader.lines().collect(Collectors.joining("\n"));
+            }
+        }
+
+        throw new RuntimeException("HTTP Error " + status + ": " + errorMessage);
     }
+
 
     private static <T> T readJsonBody(HttpURLConnection http, Class<T> responseClass) throws IOException {
         if (responseClass == null) {
