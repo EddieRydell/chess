@@ -62,7 +62,8 @@ public class ChessClient {
                 case "quit"      -> "quit";
                 default          -> "Unknown command. Type 'help' for options.";
             };
-        } catch (RuntimeException ex) {
+        }
+        catch (RuntimeException ex) {
             return "Error: " + ex.getMessage();
         }
     }
@@ -270,9 +271,17 @@ public class ChessClient {
         }
         var chosenGame = games.get(gameNumber);
 
-        server.observeGame(currentUser.authToken(), chosenGame.gameID());
-        return "Now observing game '" + chosenGame.gameName() + "'";
+        GameData data = server.getGame(currentUser.authToken(), chosenGame.gameID());
+
+        String boardString = drawBoard(data.game().getBoard(), "white");
+
+        return String.format("Now observing game '%s' (ID %d)\n%s",
+                data.gameName(),
+                data.gameID(),
+                boardString
+        );
     }
+
 
     private void assertLoggedIn() {
         if (state == State.LOGGEDOUT) {
