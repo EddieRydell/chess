@@ -49,15 +49,17 @@ public class ServerFacade {
         String path = "/game";
         CreateGameRequest body = new CreateGameRequest(authToken, gameName);
 
-        makeRequest("POST", path, body, null, null);
+        makeRequest("POST", path, body, null, authToken);
     }
 
     public List<GameData> listGames(String authToken) {
-        GameData[] gamesArray = makeRequest("GET", "/game", null, GameData[].class, authToken);
-        if (gamesArray == null) {
+        record GameListResponse(GameData[] games) {}
+        GameListResponse response = makeRequest("GET", "/game", null, GameListResponse.class, authToken);
+
+        if (response == null || response.games() == null) {
             return List.of();
         }
-        return Arrays.asList(gamesArray);
+        return Arrays.asList(response.games());
     }
 
     public void joinGame(String authToken, String gameId, String color) {
@@ -65,7 +67,7 @@ public class ServerFacade {
         String path = "/game";
         JoinGameRequest body = new JoinGameRequest(authToken, gameId, color);
 
-        makeRequest("PUT", path, body, null, null);
+        makeRequest("PUT", path, body, null, authToken);
     }
 
     public void observeGame(String authToken, String gameId) {
@@ -73,7 +75,7 @@ public class ServerFacade {
         String path = "/game/observe";
         ObserveGameRequest body = new ObserveGameRequest(authToken, gameId);
 
-        makeRequest("PUT", path, body, null, null);
+        makeRequest("PUT", path, body, null, authToken);
     }
 
     private <T> T makeRequest(String method,

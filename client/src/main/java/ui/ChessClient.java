@@ -2,7 +2,6 @@ package ui;
 
 import java.util.Arrays;
 
-import com.sun.nio.sctp.NotificationHandler;
 import model.AuthData;
 import model.GameData;
 import server.ServerFacade;
@@ -18,10 +17,8 @@ public class ChessClient {
     private AuthData currentUser = null;
 
     private final ServerFacade server;
-    private final String serverUrl;
 
     public ChessClient(String serverUrl) {
-        this.serverUrl = serverUrl;
         this.server = new ServerFacade(serverUrl);
     }
 
@@ -58,8 +55,7 @@ public class ChessClient {
         var username = params[0];
         var password = params[1];
 
-        var authData = server.login(username, password);
-        currentUser = authData;
+        currentUser = server.login(username, password);
         state = State.LOGGEDIN;
         return "Login successful for user '" + username + "'";
     }
