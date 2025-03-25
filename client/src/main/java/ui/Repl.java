@@ -6,20 +6,19 @@ import com.sun.nio.sctp.NotificationHandler;
 
 import java.util.Scanner;
 
-import static java.awt.Color.*;
-import static org.glassfish.grizzly.Interceptor.RESET;
+import static ui.EscapeSequences.*;
 
 public class Repl implements NotificationHandler {
 
     private final ChessClient client;
 
     public Repl(String serverUrl) {
-        client = new ChessClient(serverUrl, this);
+        client = new ChessClient(serverUrl);
     }
 
     public void run() {
         System.out.println("Welcome to the Chess Game");
-        System.out.print(client.help());
+        System.out.print(SET_TEXT_COLOR_BLUE + client.help());
 
         Scanner scanner = new Scanner(System.in);
         var result = "";
@@ -29,8 +28,9 @@ public class Repl implements NotificationHandler {
 
             try {
                 result = client.eval(line);
-                System.out.print(BLUE + result);
-            } catch (Throwable e) {
+                System.out.print(SET_TEXT_COLOR_BLUE + result);
+            }
+            catch (Throwable e) {
                 var msg = e.toString();
                 System.out.print(msg);
             }
@@ -39,12 +39,12 @@ public class Repl implements NotificationHandler {
     }
 
     public void notify(Notification notification) {
-        System.out.println(RED + notification.message());
+        System.out.println(SET_TEXT_COLOR_RED + notification.toString());
         printPrompt();
     }
 
     private void printPrompt() {
-        System.out.print("\n" + RESET + ">>> " + GREEN);
+        System.out.print("\n" + RESET_TEXT_COLOR + ">>> " + SET_TEXT_COLOR_GREEN);
     }
 
     @Override

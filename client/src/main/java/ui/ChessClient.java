@@ -2,6 +2,7 @@ package ui;
 
 import java.util.Arrays;
 
+import com.sun.nio.sctp.NotificationHandler;
 import model.AuthData;
 import model.GameData;
 import server.ServerFacade;
@@ -170,7 +171,7 @@ public class ChessClient {
         }
     }
 
-    private String help() {
+    public String help() {
         if (state == State.LOGGEDOUT) {
             return """
                 Commands (LOGGED OUT):
