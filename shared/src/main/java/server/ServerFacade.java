@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 public class ServerFacade {
     private final String baseUrl;
-    private static final Gson gson = new Gson();
+    private static final Gson GSON = new Gson();
 
     public ServerFacade(int port) {
         this("http://localhost:" + port);
@@ -102,7 +102,7 @@ public class ServerFacade {
 
             if (requestBody != null) {
                 http.setRequestProperty("Content-Type", "application/json");
-                String reqJson = gson.toJson(requestBody);
+                String reqJson = GSON.toJson(requestBody);
                 try (OutputStream os = http.getOutputStream()) {
                     os.write(reqJson.getBytes());
                 }
@@ -147,7 +147,7 @@ public class ServerFacade {
         }
         try (InputStream in = http.getInputStream();
              InputStreamReader reader = new InputStreamReader(in)) {
-            return gson.fromJson(reader, responseClass);
+            return GSON.fromJson(reader, responseClass);
         }
     }
 }
