@@ -23,9 +23,6 @@ public class ServerFacade {
         this.baseUrl = url;
     }
 
-    // -----------------------------------------------
-    // 1) LOGIN
-    // -----------------------------------------------
     public AuthData login(String username, String password) {
         record LoginRequest(String username, String password) {}
         String path = "/session";
@@ -34,9 +31,6 @@ public class ServerFacade {
         return makeRequest("POST", path, requestBody, AuthData.class, null);
     }
 
-    // -----------------------------------------------
-    // 2) REGISTER
-    // -----------------------------------------------
     public AuthData register(String username, String password, String email) {
         record RegisterRequest(String username, String password, String email) {}
         String path = "/user";
@@ -45,17 +39,11 @@ public class ServerFacade {
         return makeRequest("POST", path, requestBody, AuthData.class, null);
     }
 
-    // -----------------------------------------------
-    // 3) LOGOUT
-    // -----------------------------------------------
     public void logout(String authToken) {
         String path = "/session";
         makeRequest("DELETE", path, null, null, authToken);
     }
 
-    // -----------------------------------------------
-    // 4) CREATE GAME
-    // -----------------------------------------------
     public void createGame(String authToken, String gameName) {
         record CreateGameRequest(String authToken, String gameName) {}
         String path = "/game";
@@ -64,9 +52,6 @@ public class ServerFacade {
         makeRequest("POST", path, body, null, null);
     }
 
-    // -----------------------------------------------
-    // 5) LIST GAMES
-    // -----------------------------------------------
     public List<GameData> listGames(String authToken) {
         GameData[] gamesArray = makeRequest("GET", "/game", null, GameData[].class, authToken);
         if (gamesArray == null) {
@@ -75,9 +60,6 @@ public class ServerFacade {
         return Arrays.asList(gamesArray);
     }
 
-    // -----------------------------------------------
-    // 6) JOIN GAME
-    // -----------------------------------------------
     public void joinGame(String authToken, String gameId, String color) {
         record JoinGameRequest(String authToken, String gameId, String color) {}
         String path = "/game";
@@ -86,20 +68,14 @@ public class ServerFacade {
         makeRequest("PUT", path, body, null, null);
     }
 
-    // -----------------------------------------------
-    // 7) OBSERVE GAME
-    // -----------------------------------------------
     public void observeGame(String authToken, String gameId) {
         record ObserveGameRequest(String authToken, String gameId) {}
-        String path = "/game/observe"; // Make sure this endpoint exists on the server
+        String path = "/game/observe";
         ObserveGameRequest body = new ObserveGameRequest(authToken, gameId);
 
         makeRequest("PUT", path, body, null, null);
     }
 
-    // =====================================================
-    //      LOW-LEVEL HELPER that does the HTTP calls
-    // =====================================================
     private <T> T makeRequest(String method,
                               String path,
                               Object requestBody,
@@ -112,17 +88,14 @@ public class ServerFacade {
             http = (HttpURLConnection) url.openConnection();
             http.setRequestMethod(method);
 
-            // If we have an auth token, put it in the Authorization header
             if (authToken != null && !authToken.isBlank()) {
                 http.setRequestProperty("Authorization", authToken);
             }
 
-            // For POST/PUT/DELETE, we usually want to send a body
             if (!method.equals("GET")) {
                 http.setDoOutput(true);
             }
 
-            // Write body as JSON if present
             if (requestBody != null) {
                 http.setRequestProperty("Content-Type", "application/json");
                 String reqJson = gson.toJson(requestBody);
@@ -131,17 +104,13 @@ public class ServerFacade {
                 }
             }
 
-            // Fire the request
             http.connect();
 
-            // Throw if not 2xx
             throwIfNotSuccessful(http);
 
-            // Parse JSON body (if responseClass != null)
             return readJsonBody(http, responseClass);
 
         } catch (Exception ex) {
-            // Wrap any exception in a RuntimeException
             throw new RuntimeException("Error making HTTP request: " + ex.getMessage(), ex);
         } finally {
             if (http != null) {
@@ -150,14 +119,9 @@ public class ServerFacade {
         }
     }
 
-    /**
-     * Checks the HTTP status code and throws a RuntimeException if
-     * it is not a 2xx successful response.
-     */
     private static void throwIfNotSuccessful(HttpURLConnection http) throws IOException {
         int status = http.getResponseCode();
         if (status < 200 || status >= 300) {
-            // Attempt to read the error stream (if any) for diagnostic info
             StringBuilder sb = new StringBuilder();
             try (InputStream errorStream = http.getErrorStream()) {
                 if (errorStream != null) {
@@ -173,16 +137,10 @@ public class ServerFacade {
         }
     }
 
-    /**
-     * Reads the response body as JSON into the specified type.
-     * If responseClass is null, we skip parsing and return null.
-     */
     private static <T> T readJsonBody(HttpURLConnection http, Class<T> responseClass) throws IOException {
         if (responseClass == null) {
-            // If no response is expected, just return null
             return null;
         }
-        // Otherwise parse the JSON
         try (InputStream in = http.getInputStream();
              InputStreamReader reader = new InputStreamReader(in)) {
             return gson.fromJson(reader, responseClass);
