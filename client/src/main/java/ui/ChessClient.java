@@ -180,7 +180,7 @@ public class ChessClient {
         }
         var chosenGame = games.get(gameNumber);
 
-        server.observeGame(currentUser.authToken(), String.valueOf(chosenGame.gameID()));
+        server.observeGame(currentUser.authToken(), chosenGame.gameID());
         return "Now observing game '" + chosenGame.gameName() + "'";
     }
 

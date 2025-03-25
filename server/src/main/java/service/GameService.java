@@ -22,6 +22,15 @@ public class GameService {
         this.dao = dao;
     }
 
+    public GameData getGame(int gameID, String token) throws DataAccessException {
+        AuthData auth = requireValidAuth(token);
+        GameData game = dao.getGame(gameID);
+        if (game == null) {
+            throw new DataAccessException("Bad request: game not found");
+        }
+        return game;
+    }
+
     public CreateGameResult createGame(CreateGameRequest request, String authToken)
             throws DataAccessException {
         requireValidAuth(authToken);
