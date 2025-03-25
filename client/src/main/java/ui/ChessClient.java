@@ -38,7 +38,6 @@ public class ChessClient {
             String matchedCmd = matchCommand(cmdPartial);
 
             if (matchedCmd == null) {
-                // Either no matches or multiple matches
                 return "Unknown or ambiguous command. Type 'help' for options.";
             }
 
@@ -148,8 +147,8 @@ public class ChessClient {
             throw new RuntimeException("Invalid game number.");
         }
 
-        var color = params[1].toLowerCase();
-        if (!color.equals("white") && !color.equals("black")) {
+        var color = params[1].toUpperCase();
+        if (!color.equals("WHITE") && !color.equals("BLACK")) {
             throw new RuntimeException("Color must be 'white' or 'black'.");
         }
 
@@ -159,7 +158,7 @@ public class ChessClient {
         }
         var chosenGame = games.get(gameNumber);
 
-        server.joinGame(currentUser.authToken(), String.valueOf(chosenGame.gameID()), color);
+        server.joinGame(currentUser.authToken(), chosenGame.gameID(), color);
         return "Joined game '" + chosenGame.gameName() + "' as " + color;
     }
 
