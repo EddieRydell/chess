@@ -1,6 +1,7 @@
 package ui;
 
 import java.util.Arrays;
+import java.util.List;
 
 import model.AuthData;
 import model.GameData;
@@ -12,6 +13,11 @@ public class ChessClient {
         LOGGEDOUT,
         LOGGEDIN
     }
+
+    private static final List<String> VALID_COMMANDS = List.of(
+            "login", "register", "logout", "create", "list",
+            "join", "observe", "help", "quit"
+    );
 
     private State state = State.LOGGEDOUT;
     private AuthData currentUser = null;
@@ -28,10 +34,17 @@ public class ChessClient {
             if (tokens.length == 0) {
                 return help();
             }
-            var cmd = tokens[0].toLowerCase();
+            var cmdPartial = tokens[0].toLowerCase();
+            String matchedCmd = matchCommand(cmdPartial);
+
+            if (matchedCmd == null) {
+                // Either no matches or multiple matches
+                return "Unknown or ambiguous command. Type 'help' for options.";
+            }
+
             var params = Arrays.copyOfRange(tokens, 1, tokens.length);
 
-            return switch (cmd) {
+            return switch (matchedCmd) {
                 case "login"     -> doLogin(params);
                 case "register"  -> doRegister(params);
                 case "logout"    -> doLogout();
@@ -46,6 +59,17 @@ public class ChessClient {
         } catch (RuntimeException ex) {
             return "Error: " + ex.getMessage();
         }
+    }
+
+    private String matchCommand(String partial) {
+        var matches = VALID_COMMANDS.stream()
+                .filter(cmd -> cmd.startsWith(partial))
+                .toList();
+
+        if (matches.size() == 1) {
+            return matches.get(0);
+        }
+        return null;
     }
 
     private String doLogin(String[] params) {
@@ -176,8 +200,7 @@ public class ChessClient {
                   quit
                   help
                 """;
-        }
-        else {
+        } else {
             return """
                 Commands (LOGGED IN):
                   create <gameName>
