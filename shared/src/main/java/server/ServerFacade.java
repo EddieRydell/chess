@@ -3,7 +3,6 @@ package server;
 import com.google.gson.Gson;
 import model.AuthData;
 import model.GameData;
-import service.requests.JoinGameRequest;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -69,7 +68,7 @@ public class ServerFacade {
     }
 
     public void joinGame(String authToken, int gameId, String color) {
-        // record JoinGameRequest(String authToken, String gameId, String color) {}
+        record JoinGameRequest(String color, int gameID) {}
         String path = "/game";
         JoinGameRequest body = new JoinGameRequest(color, gameId);
 
