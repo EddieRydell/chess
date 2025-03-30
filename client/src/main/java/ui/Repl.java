@@ -30,8 +30,7 @@ public class Repl implements NotificationHandler {
                 System.out.print(SET_TEXT_COLOR_BLUE + result);
             }
             catch (Throwable e) {
-                var msg = e.toString();
-                System.out.print(msg);
+                System.out.print("Unable to execute that command");
             }
         }
         System.out.println();

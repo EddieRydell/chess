@@ -35,6 +35,23 @@ public class ChessClient {
         this.server = new ServerFacade(serverUrl);
     }
 
+    private String friendlyErrorMessage(String rawMessage) {
+        String lower = rawMessage.toLowerCase();
+
+        if (lower.contains("401") || lower.contains("unauthorized")) {
+            return "Unauthorized. Please check your credentials or log in first.";
+        }
+        else if (lower.contains("403") || lower.contains("already taken")) {
+            return "That action is not allowed (game already taken or no permission).";
+        }
+        else if (lower.contains("out of range")) {
+            return "That choice is out of range.";
+        }
+        else {
+            return "An unexpected error occurred. Try again";
+        }
+    }
+
     public String eval(String input) {
         try {
             var tokens = input.trim().split("\\s+");
@@ -64,7 +81,11 @@ public class ChessClient {
             };
         }
         catch (RuntimeException ex) {
-            return "Error: " + ex.getMessage();
+            String rawMessage = ex.getMessage();
+
+            String friendlyMessage = friendlyErrorMessage(rawMessage);
+
+            return "Error: " + friendlyMessage;
         }
     }
 
@@ -181,21 +202,15 @@ public class ChessClient {
         }
         sb.append("\n");
 
-        // Loop over rows.
-        // For white perspective, rows 8 down to 1; for black, rows 1 to 8.
         for (int r = 0; r < 8; r++) {
             int actualRow = isWhite ? 8 - r : r + 1;
             sb.append(actualRow).append(" ");
 
-            // Loop over columns.
-            // For white perspective, columns 1 to 8; for black, columns 8 down to 1.
             for (int c = 0; c < 8; c++) {
                 int actualCol = isWhite ? c + 1 : 8 - c;
 
-                // Since the board is 1-indexed, we use actualRow and actualCol directly.
                 ChessPiece piece = board.getPiece(new ChessPosition(actualRow, actualCol));
 
-                // Standard chessboards have a1 as a dark square.
                 boolean isDarkSquare = (actualRow + actualCol) % 2 == 0;
                 String bgColor = isDarkSquare
                         ? EscapeSequences.SET_BG_COLOR_DARK_GREY
@@ -211,7 +226,6 @@ public class ChessClient {
             sb.append(" ").append(actualRow).append("\n");
         }
 
-        // Print bottom column labels
         sb.append("  ");
         for (String file : files) {
             sb.append(" ").append(file).append(" ");

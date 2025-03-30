@@ -69,7 +69,7 @@ public class ServerFacade {
     }
 
     public void joinGame(String authToken, int gameId, String color) {
-        record JoinGameRequest(String color, int gameID) {}
+        record JoinGameRequest(String playerColor, int gameID) {}
         String path = "/game";
         JoinGameRequest body = new JoinGameRequest(color, gameId);
 
@@ -114,9 +114,11 @@ public class ServerFacade {
 
             return readJsonBody(http, responseClass);
 
-        } catch (Exception ex) {
+        }
+        catch (Exception ex) {
             throw new RuntimeException("Error making HTTP request: " + ex.getMessage(), ex);
-        } finally {
+        }
+        finally {
             if (http != null) {
                 http.disconnect();
             }
