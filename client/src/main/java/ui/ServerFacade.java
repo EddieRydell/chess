@@ -3,7 +3,6 @@ package ui;
 import com.google.gson.Gson;
 import model.AuthData;
 import model.GameData;
-import service.requests.JoinGameRequest;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -11,10 +10,11 @@ import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ServerFacade {
     private final String baseUrl;
-    private static final Gson gson = new Gson();
+    private static final Gson GSON = new Gson();
 
     public ServerFacade(int port) {
         this("http://localhost:" + port);
@@ -69,7 +69,7 @@ public class ServerFacade {
     }
 
     public void joinGame(String authToken, int gameId, String color) {
-        // record JoinGameRequest(String authToken, String gameId, String color) {}
+        record JoinGameRequest(String playerColor, int gameID) {}
         String path = "/game";
         JoinGameRequest body = new JoinGameRequest(color, gameId);
 
@@ -77,12 +77,16 @@ public class ServerFacade {
     }
 
     public GameData observeGame(String authToken, int gameId) {
+<<<<<<<< HEAD:client/src/main/java/ui/ServerFacade.java
 //        record ObserveGameRequest(String authToken, String gameId) {}
 //        String path = "/game/observe";
 //        ObserveGameRequest body = new ObserveGameRequest(authToken, gameId);
 //
 //        makeRequest("PUT", path, body, null, authToken);
         return null;
+========
+        return getGame(authToken, gameId);
+>>>>>>>> f184b0c683b94f0e68799d5b8e92673fe99b4987:shared/src/main/java/server/ServerFacade.java
     }
 
     private <T> T makeRequest(String method,
@@ -107,7 +111,7 @@ public class ServerFacade {
 
             if (requestBody != null) {
                 http.setRequestProperty("Content-Type", "application/json");
-                String reqJson = gson.toJson(requestBody);
+                String reqJson = GSON.toJson(requestBody);
                 try (OutputStream os = http.getOutputStream()) {
                     os.write(reqJson.getBytes());
                 }
@@ -119,9 +123,11 @@ public class ServerFacade {
 
             return readJsonBody(http, responseClass);
 
-        } catch (Exception ex) {
+        }
+        catch (Exception ex) {
             throw new RuntimeException("Error making HTTP request: " + ex.getMessage(), ex);
-        } finally {
+        }
+        finally {
             if (http != null) {
                 http.disconnect();
             }
@@ -130,21 +136,21 @@ public class ServerFacade {
 
     private static void throwIfNotSuccessful(HttpURLConnection http) throws IOException {
         int status = http.getResponseCode();
-        if (status < 200 || status >= 300) {
-            StringBuilder sb = new StringBuilder();
-            try (InputStream errorStream = http.getErrorStream()) {
-                if (errorStream != null) {
-                    try (BufferedReader br = new BufferedReader(new InputStreamReader(errorStream))) {
-                        String line;
-                        while ((line = br.readLine()) != null) {
-                            sb.append(line).append("\n");
-                        }
-                    }
-                }
-            }
-            throw new RuntimeException("HTTP Error " + status + ": " + sb);
+        if (status >= 200 && status < 300) {
+            return;
         }
+
+        String errorMessage = "";
+        InputStream errorStream = http.getErrorStream();
+        if (errorStream != null) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream))) {
+                errorMessage = reader.lines().collect(Collectors.joining("\n"));
+            }
+        }
+
+        throw new RuntimeException("HTTP Error " + status + ": " + errorMessage);
     }
+
 
     private static <T> T readJsonBody(HttpURLConnection http, Class<T> responseClass) throws IOException {
         if (responseClass == null) {
@@ -152,7 +158,7 @@ public class ServerFacade {
         }
         try (InputStream in = http.getInputStream();
              InputStreamReader reader = new InputStreamReader(in)) {
-            return gson.fromJson(reader, responseClass);
+            return GSON.fromJson(reader, responseClass);
         }
     }
 }

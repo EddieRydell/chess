@@ -31,6 +31,7 @@ public class JoinGameHandler implements Route {
         }
         catch (DataAccessException e) {
             String msg = e.getMessage().toLowerCase();
+            System.out.println(e.getMessage());
             if (msg.contains("unauthorized")) {
                 res.status(401);
                 return "{\"message\":\"Error: unauthorized\"}";
