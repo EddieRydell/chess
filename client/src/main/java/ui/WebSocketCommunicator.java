@@ -1,20 +1,22 @@
 package ui;
 
 import com.google.gson.Gson;
+import org.glassfish.tyrus.client.ClientManager;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
 
+import javax.websocket.*;
+import javax.websocket.ClientEndpointConfig;
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.WebSocket;
-import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CountDownLatch;
 
+@ClientEndpoint
 public class WebSocketCommunicator {
+    private Session session;
     private final ServerMessageObserver observer;
-    private final String serverUrl;
-    private WebSocket webSocket;
+    private final String serverUrl; // e.g., "http://localhost:4567"
     private final Gson gson = new Gson();
+    private CountDownLatch latch = new CountDownLatch(1);
 
     public WebSocketCommunicator(String serverUrl, ServerMessageObserver observer) {
         this.serverUrl = serverUrl;
@@ -22,50 +24,53 @@ public class WebSocketCommunicator {
     }
 
     public void connect() {
-        CountDownLatch latch = new CountDownLatch(1);
-        HttpClient client = HttpClient.newHttpClient();
-        client.newWebSocketBuilder()
-                .buildAsync(URI.create(serverUrl + "/ws"), new WebSocket.Listener() {
-                    @Override
-                    public void onOpen(WebSocket webSocket) {
-                        WebSocketCommunicator.this.webSocket = webSocket;
-                        webSocket.request(1);
-                        latch.countDown();
-                    }
-                    @Override
-                    public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
-                        String json = data.toString();
-                        ServerMessage message = gson.fromJson(json, ServerMessage.class);
-                        observer.onServerMessage(message);
-                        webSocket.request(1);
-                        return null;
-                    }
-                });
         try {
-            latch.await();
-        } catch (InterruptedException e) {
+            ClientManager client = ClientManager.createClient();
+            String wsUrl = serverUrl.replace("http://", "ws://") + "/ws";
+            session = client.connectToServer(this,
+                    ClientEndpointConfig.Builder.create().build(),
+                    URI.create(wsUrl));
+            latch.await(); // Wait until onOpen is called.
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    @OnOpen
+    public void onOpen(Session session) {
+        this.session = session;
+        latch.countDown();
+    }
+
+    @OnMessage
+    public void onMessage(String message) {
+        // Deserialize JSON message to a ServerMessage object and pass it to the observer.
+        ServerMessage serverMessage = gson.fromJson(message, ServerMessage.class);
+        observer.onServerMessage(serverMessage);
+    }
+
+    @OnError
+    public void onError(Session session, Throwable t) {
+        System.err.println("WebSocket error: " + t.getMessage());
+    }
+
     public void sendCommand(UserGameCommand command) {
         String json = gson.toJson(command);
-        if (webSocket != null) {
-            webSocket.sendText(json, true);
+        if (session != null && session.isOpen()) {
+            session.getAsyncRemote().sendText(json);
         }
     }
+
+    // Convenience methods to send specific commands:
 
     public void sendConnectCommand(String authToken, int gameID) {
         UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID);
         sendCommand(command);
     }
 
-    public void sendMakeMoveCommand(String authToken, int gameID, Object move) {
+    public void sendMakeMoveCommand(String authToken, int gameID, chess.ChessMove move) {
         MakeMoveCommand command = new MakeMoveCommand(authToken, gameID, move);
-        String json = gson.toJson(command);
-        if (webSocket != null) {
-            webSocket.sendText(json, true);
-        }
+        sendCommand(command);
     }
 
     public void sendResignCommand(String authToken, int gameID) {
@@ -78,15 +83,16 @@ public class WebSocketCommunicator {
         sendCommand(command);
     }
 
+    // An inner class to extend UserGameCommand with a ChessMove field.
     public static class MakeMoveCommand extends UserGameCommand {
-        private Object move;
+        private final chess.ChessMove move;
 
-        public MakeMoveCommand(String authToken, int gameID, Object move) {
+        public MakeMoveCommand(String authToken, int gameID, chess.ChessMove move) {
             super(CommandType.MAKE_MOVE, authToken, gameID);
             this.move = move;
         }
 
-        public Object getMove() {
+        public chess.ChessMove getMove() {
             return move;
         }
     }

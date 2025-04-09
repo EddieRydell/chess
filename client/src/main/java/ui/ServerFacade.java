@@ -12,9 +12,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ServerFacade {
+public class ServerFacade implements ServerMessageObserver {
     private final String baseUrl;
     private static final Gson GSON = new Gson();
+
+    private WebSocketCommunicator wsComm;
 
     public ServerFacade(int port) {
         this("http://localhost:" + port);
@@ -28,7 +30,6 @@ public class ServerFacade {
         record LoginRequest(String username, String password) {}
         String path = "/session";
         LoginRequest requestBody = new LoginRequest(username, password);
-
         return makeRequest("POST", path, requestBody, AuthData.class, null);
     }
 
@@ -36,7 +37,6 @@ public class ServerFacade {
         record RegisterRequest(String username, String password, String email) {}
         String path = "/user";
         RegisterRequest requestBody = new RegisterRequest(username, password, email);
-
         return makeRequest("POST", path, requestBody, AuthData.class, null);
     }
 
@@ -49,7 +49,6 @@ public class ServerFacade {
         record CreateGameRequest(String authToken, String gameName) {}
         String path = "/game";
         CreateGameRequest body = new CreateGameRequest(authToken, gameName);
-
         makeRequest("POST", path, body, null, authToken);
     }
 
@@ -61,7 +60,6 @@ public class ServerFacade {
     public List<GameData> listGames(String authToken) {
         record GameListResponse(GameData[] games) {}
         GameListResponse response = makeRequest("GET", "/game", null, GameListResponse.class, authToken);
-
         if (response == null || response.games() == null) {
             return List.of();
         }
@@ -72,18 +70,33 @@ public class ServerFacade {
         record JoinGameRequest(String playerColor, int gameID) {}
         String path = "/game";
         JoinGameRequest body = new JoinGameRequest(color, gameId);
-
         makeRequest("PUT", path, body, null, authToken);
     }
 
-    public GameData observeGame(String authToken, int gameId) {
-//        record ObserveGameRequest(String authToken, String gameId) {}
-//        String path = "/game/observe";
-//        ObserveGameRequest body = new ObserveGameRequest(authToken, gameId);
-//
-//        makeRequest("PUT", path, body, null, authToken);
-        return null;
-}
+    // New WebSocket Methods
+    public void connectToGame(String authToken, int gameId) {
+        wsComm = new WebSocketCommunicator(baseUrl, this);
+        wsComm.connect();
+        wsComm.sendConnectCommand(authToken, gameId);
+    }
+
+    public void sendMakeMove(String authToken, int gameId, chess.ChessMove move) {
+        if (wsComm != null) {
+            wsComm.sendMakeMoveCommand(authToken, gameId, move);
+        }
+    }
+
+    public void sendResign(String authToken, int gameId) {
+        if (wsComm != null) {
+            wsComm.sendResignCommand(authToken, gameId);
+        }
+    }
+
+    public void sendLeave(String authToken, int gameId) {
+        if (wsComm != null) {
+            wsComm.sendLeaveCommand(authToken, gameId);
+        }
+    }
 
     private <T> T makeRequest(String method,
                               String path,
@@ -114,16 +127,12 @@ public class ServerFacade {
             }
 
             http.connect();
-
             throwIfNotSuccessful(http);
-
             return readJsonBody(http, responseClass);
 
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             throw new RuntimeException("Error making HTTP request: " + ex.getMessage(), ex);
-        }
-        finally {
+        } finally {
             if (http != null) {
                 http.disconnect();
             }
@@ -135,7 +144,6 @@ public class ServerFacade {
         if (status >= 200 && status < 300) {
             return;
         }
-
         String errorMessage = "";
         InputStream errorStream = http.getErrorStream();
         if (errorStream != null) {
@@ -143,10 +151,8 @@ public class ServerFacade {
                 errorMessage = reader.lines().collect(Collectors.joining("\n"));
             }
         }
-
         throw new RuntimeException("HTTP Error " + status + ": " + errorMessage);
     }
-
 
     private static <T> T readJsonBody(HttpURLConnection http, Class<T> responseClass) throws IOException {
         if (responseClass == null) {
@@ -155,6 +161,21 @@ public class ServerFacade {
         try (InputStream in = http.getInputStream();
              InputStreamReader reader = new InputStreamReader(in)) {
             return GSON.fromJson(reader, responseClass);
+        }
+    }
+
+    @Override
+    public void onServerMessage(websocket.messages.ServerMessage message) {
+        switch (message.getServerMessageType()) {
+            case LOAD_GAME:
+                System.out.println("Received LOAD_GAME update.");
+                break;
+            case NOTIFICATION:
+                System.out.println("Received NOTIFICATION: " + message);
+                break;
+            case ERROR:
+                System.err.println("Received ERROR: " + message);
+                break;
         }
     }
 }

@@ -24,6 +24,7 @@ public class ChessClient {
 
     private State state = State.LOGGEDOUT;
     private AuthData currentUser = null;
+    private Integer currentGameID = null;
 
     private final ServerFacade server;
 
@@ -57,12 +58,42 @@ public class ChessClient {
             var cmdPartial = tokens[0].toLowerCase();
             String matchedCmd = matchCommand(cmdPartial);
 
-            if (matchedCmd == null) {
-                return "Unknown or ambiguous command. Type 'help' for options.";
+            if(matchedCmd == null) {
+                switch (cmdPartial) {
+                    case "move":
+                        if(tokens.length < 5) {
+                            return "Usage: move <startRow> <startCol> <endRow> <endCol>";
+                        }
+                        int startRow = Integer.parseInt(tokens[1]);
+                        int startCol = Integer.parseInt(tokens[2]);
+                        int endRow = Integer.parseInt(tokens[3]);
+                        int endCol = Integer.parseInt(tokens[4]);
+                        chess.ChessMove move = new chess.ChessMove(new chess.ChessPosition(startRow, startCol),
+                                new chess.ChessPosition(endRow, endCol), null);
+                        if(currentGameID == null) {
+                            return "You are not in a game.";
+                        }
+                        server.sendMakeMove(currentUser.authToken(), currentGameID, move);
+                        return "Move command sent.";
+                    case "resign":
+                        if(currentGameID == null) {
+                            return "You are not in a game.";
+                        }
+                        server.sendResign(currentUser.authToken(), currentGameID);
+                        return "Resign command sent.";
+                    case "leave":
+                        if(currentGameID == null) {
+                            return "You are not in a game.";
+                        }
+                        server.sendLeave(currentUser.authToken(), currentGameID);
+                        currentGameID = null;
+                        return "Leave command sent.";
+                    default:
+                        return "Unknown or ambiguous command. Type 'help' for options.";
+                }
             }
 
             var params = Arrays.copyOfRange(tokens, 1, tokens.length);
-
             return switch (matchedCmd) {
                 case "login"     -> doLogin(params);
                 case "register"  -> doRegister(params);
@@ -75,15 +106,13 @@ public class ChessClient {
                 case "quit"      -> "quit";
                 default          -> "Unknown command. Type 'help' for options.";
             };
-        }
-        catch (RuntimeException ex) {
+        } catch (RuntimeException ex) {
             String rawMessage = ex.getMessage();
-
             String friendlyMessage = friendlyErrorMessage(rawMessage);
-
             return "Error: " + friendlyMessage;
         }
     }
+
 
     private String matchCommand(String partial) {
         var matches = VALID_COMMANDS.stream()
@@ -256,10 +285,11 @@ public class ChessClient {
 
         server.joinGame(currentUser.authToken(), chosenGame.gameID(), color);
 
+        server.connectToGame(currentUser.authToken(), chosenGame.gameID());
+        currentGameID = chosenGame.gameID();
+
         GameData updatedGame = server.getGame(currentUser.authToken(), chosenGame.gameID());
-
         String boardString = drawBoard(updatedGame.game().getBoard(), color);
-
         return "Joined game '" + chosenGame.gameName() + "' as " + color + "\n\n" + boardString;
     }
 
