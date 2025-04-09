@@ -9,10 +9,6 @@ import chess.ChessPiece;
 import chess.ChessPosition;
 import model.AuthData;
 import model.GameData;
-import server.ServerFacade;
-
-import static chess.ChessGame.TeamColor.BLACK;
-import static chess.ChessGame.TeamColor.WHITE;
 
 public class ChessClient {
 

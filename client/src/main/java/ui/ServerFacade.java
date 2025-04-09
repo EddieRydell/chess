@@ -1,4 +1,4 @@
-package server;
+package ui;
 
 import com.google.gson.Gson;
 import model.AuthData;
@@ -76,12 +76,13 @@ public class ServerFacade {
         makeRequest("PUT", path, body, null, authToken);
     }
 
-    public void observeGame(String authToken, int gameId) {
+    public GameData observeGame(String authToken, int gameId) {
 //        record ObserveGameRequest(String authToken, String gameId) {}
 //        String path = "/game/observe";
 //        ObserveGameRequest body = new ObserveGameRequest(authToken, gameId);
 //
 //        makeRequest("PUT", path, body, null, authToken);
+        return null;
     }
 
     private <T> T makeRequest(String method,
