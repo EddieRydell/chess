@@ -5,7 +5,7 @@ import server.Server;
 
 import model.AuthData;
 import model.GameData;
-import ServerFacade;
+import ui.ServerFacade;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -32,7 +32,7 @@ public class ServerFacadeTests {
         port = server.run(0);  // random port
         System.out.println("Started test HTTP server on port " + port);
 
-        // Create a ServerFacade pointing at that port
+        // Create a ui.ServerFacade pointing at that port
         facade = new ServerFacade(port);
     }
 
