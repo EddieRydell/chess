@@ -77,17 +77,13 @@ public class ServerFacade {
     }
 
     public GameData observeGame(String authToken, int gameId) {
-<<<<<<<< HEAD:client/src/main/java/ui/ServerFacade.java
 //        record ObserveGameRequest(String authToken, String gameId) {}
 //        String path = "/game/observe";
 //        ObserveGameRequest body = new ObserveGameRequest(authToken, gameId);
 //
 //        makeRequest("PUT", path, body, null, authToken);
         return null;
-========
-        return getGame(authToken, gameId);
->>>>>>>> f184b0c683b94f0e68799d5b8e92673fe99b4987:shared/src/main/java/server/ServerFacade.java
-    }
+}
 
     private <T> T makeRequest(String method,
                               String path,
