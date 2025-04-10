@@ -351,6 +351,9 @@ public class ChessClient {
                   logout
                   quit
                   help
+                  move <startRow> <startCol> <endRow> <endCol>
+                  resign
+                  leave
                 """;
         }
     }

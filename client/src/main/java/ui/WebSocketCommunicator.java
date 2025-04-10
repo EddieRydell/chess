@@ -29,15 +29,13 @@ public class WebSocketCommunicator {
         try {
             ClientManager client = ClientManager.createClient();
             String wsUrl = serverUrl.replace("http://", "ws://") + "/ws";
-            session = client.connectToServer(
-                    WebSocketCommunicator.class,
-                    URI.create(wsUrl)
-            );
-            latch.await(); // Wait until onOpen is called.
+            session = client.connectToServer(this, URI.create(wsUrl));
+            latch.await();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
 
     @OnOpen
     public void onOpen(Session session) {
