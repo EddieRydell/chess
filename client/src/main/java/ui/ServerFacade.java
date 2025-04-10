@@ -3,6 +3,7 @@ package ui;
 import com.google.gson.Gson;
 import model.AuthData;
 import model.GameData;
+import websocket.messages.ServerMessage;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -15,6 +16,11 @@ import java.util.stream.Collectors;
 public class ServerFacade implements ServerMessageObserver {
     private final String baseUrl;
     private static final Gson GSON = new Gson();
+
+    private ChessClient client;
+    public void setClient(ChessClient client) {
+        this.client = client;
+    }
 
     // New field for WebSocket communication.
     private WebSocketCommunicator wsComm;
@@ -168,17 +174,12 @@ public class ServerFacade implements ServerMessageObserver {
     }
 
     @Override
-    public void onServerMessage(websocket.messages.ServerMessage message) {
-        switch (message.getServerMessageType()) {
-            case LOAD_GAME:
-                System.out.println("Received LOAD_GAME update.");
-                break;
-            case NOTIFICATION:
-                System.out.println("Received NOTIFICATION: " + message);
-                break;
-            case ERROR:
-                System.err.println("Received ERROR: " + message);
-                break;
+    public void onServerMessage(ServerMessage message) {
+        if (client != null) {
+            client.handleServerMessage(message);
+        } else {
+            // Fallback if no client is set.
+            System.out.println("Received message: " + message);
         }
     }
 }

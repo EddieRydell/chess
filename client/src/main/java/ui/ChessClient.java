@@ -5,12 +5,16 @@ import java.util.Collections;
 import java.util.List;
 
 import chess.ChessBoard;
+import chess.ChessGame;
 import chess.ChessPiece;
 import chess.ChessPosition;
 import model.AuthData;
 import model.GameData;
+import websocket.messages.ServerMessage;
 
 public class ChessClient {
+
+    private String playerColor = "white";
 
     private enum State {
         LOGGEDOUT,
@@ -30,6 +34,7 @@ public class ChessClient {
 
     public ChessClient(String serverUrl) {
         this.server = new ServerFacade(serverUrl);
+        server.setClient(this);
     }
 
     private String friendlyErrorMessage(String rawMessage) {
@@ -328,10 +333,12 @@ public class ChessClient {
 
         GameData updatedGame = server.getGame(currentUser.authToken(), chosenGame.gameID());
         String boardString = drawBoard(updatedGame.game().getBoard(), color);
+        playerColor = color;
         return "Joined game '" + chosenGame.gameName() + "' as " + color + "\n\n" + boardString;
     }
 
     private String doObserveGame(String[] params) {
+        playerColor = "white";
         assertLoggedIn();
         if (params.length < 1) {
             throw new RuntimeException("Usage: observe <gameNumber>");
@@ -390,6 +397,30 @@ public class ChessClient {
                   resign
                   leave
                 """;
+        }
+    }
+
+    public void handleServerMessage(websocket.messages.ServerMessage message) {
+        switch (message.getServerMessageType()) {
+            case LOAD_GAME:
+                if (message.game != null) {
+                    ChessGame updatedGame = message.game;
+                    String boardStr = drawBoard(updatedGame.getBoard(), playerColor);
+                    System.out.println(boardStr);
+                } else {
+                    System.out.println("Received LOAD_GAME update but game state is missing.");
+                }
+                break;
+            case NOTIFICATION:
+                System.out.println("NOTIFICATION: " + message.message);
+                if (message.message.toLowerCase().contains("resigned")) {
+                    System.out.println("Game over. No further moves allowed.");
+                    // Optionally update an internal game state flag
+                }
+                break;
+            case ERROR:
+                System.err.println("ERROR: " + message.errorMessage);
+                break;
         }
     }
 }
