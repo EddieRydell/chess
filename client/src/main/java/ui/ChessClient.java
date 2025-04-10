@@ -58,21 +58,36 @@ public class ChessClient {
             var cmdPartial = tokens[0].toLowerCase();
             String matchedCmd = matchCommand(cmdPartial);
 
-            // Handle new gameplay commands:
             if (matchedCmd == null) {
                 switch (cmdPartial) {
                     case "move":
-                        if (tokens.length < 5) {
-                            return "Usage: move <startRow> <startCol> <endRow> <endCol>";
+                        // Support two formats:
+                        // Algebraic notation: "move e2 e4" => tokens length = 3
+                        // Numeric coordinates: "move 2 5 3 5" => tokens length = 5
+                        chess.ChessMove move = null;
+                        if (tokens.length == 3) {
+                            ChessPosition start = parseAlgebraic(tokens[1]);
+                            ChessPosition end = parseAlgebraic(tokens[2]);
+                            if (start == null || end == null) {
+                                return "Usage: move <startSquare> <endSquare> (e.g., move e2 e4)";
+                            }
+                            move = new chess.ChessMove(start, end, null);
+                        } else if (tokens.length == 5) {
+                            try {
+                                int startRow = Integer.parseInt(tokens[1]);
+                                int startCol = Integer.parseInt(tokens[2]);
+                                int endRow = Integer.parseInt(tokens[3]);
+                                int endCol = Integer.parseInt(tokens[4]);
+                                move = new chess.ChessMove(
+                                        new chess.ChessPosition(startRow, startCol),
+                                        new chess.ChessPosition(endRow, endCol),
+                                        null);
+                            } catch (NumberFormatException ex) {
+                                return "Usage: move <startRow> <startCol> <endRow> <endCol> OR move <startSquare> <endSquare> (e.g., move e2 e4)";
+                            }
+                        } else {
+                            return "Usage: move <startRow> <startCol> <endRow> <endCol> OR move <startSquare> <endSquare> (e.g., move e2 e4)";
                         }
-                        int startRow = Integer.parseInt(tokens[1]);
-                        int startCol = Integer.parseInt(tokens[2]);
-                        int endRow = Integer.parseInt(tokens[3]);
-                        int endCol = Integer.parseInt(tokens[4]);
-                        chess.ChessMove move = new chess.ChessMove(
-                                new chess.ChessPosition(startRow, startCol),
-                                new chess.ChessPosition(endRow, endCol),
-                                null);
                         if (currentGameID == null) {
                             return "You are not in a game.";
                         }
@@ -115,6 +130,25 @@ public class ChessClient {
         }
     }
 
+    /**
+     * Helper function to parse algebraic notation, e.g., "e2"
+     */
+    private ChessPosition parseAlgebraic(String square) {
+        if (square == null || square.length() != 2) {
+            return null;
+        }
+        char fileChar = Character.toLowerCase(square.charAt(0));
+        char rankChar = square.charAt(1);
+        if (fileChar < 'a' || fileChar > 'h') {
+            return null;
+        }
+        if (rankChar < '1' || rankChar > '8') {
+            return null;
+        }
+        int col = fileChar - 'a' + 1;  // maps a->1, b->2, ... h->8
+        int row = rankChar - '0';      // converts '1'->1, etc.
+        return new chess.ChessPosition(row, col);
+    }
 
 
     private String matchCommand(String partial) {
