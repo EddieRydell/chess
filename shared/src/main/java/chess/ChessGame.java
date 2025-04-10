@@ -106,11 +106,7 @@ public class ChessGame {
         ChessPosition endPos = move.getEndPosition();
 
         ChessPiece piece = board.getPiece(startPos);
-        if (piece == null) {
-            throw new InvalidMoveException();
-        }
-
-        if (piece.getTeamColor() != currTurn) {
+        if (piece == null || piece.getTeamColor() != currTurn) {
             throw new InvalidMoveException();
         }
 
@@ -119,27 +115,26 @@ public class ChessGame {
             throw new InvalidMoveException();
         }
 
-        // Move the piece
+        // 💡 Only after validation do we actually mutate the board.
+        // ---- Move the piece ----
         board.addPiece(startPos, null);
         if (move.getPromotionPiece() == null) {
             board.addPiece(endPos, piece);
-        }
-        else {
+        } else {
             board.addPiece(endPos, new ChessPiece(currTurn, move.getPromotionPiece()));
         }
 
-        // Handle castling
+        // ---- Castling ----
         if (piece.getPieceType() == ChessPiece.PieceType.KING && Math.abs(startPos.getColumn() - endPos.getColumn()) == 2) {
             int kingRow = (currTurn == TeamColor.WHITE) ? 1 : 8;
-            if (endPos.getColumn() == 7) { // Kingside castling
+            if (endPos.getColumn() == 7) {
                 ChessPosition rookStart = new ChessPosition(kingRow, 8);
                 ChessPosition rookEnd = new ChessPosition(kingRow, 6);
                 ChessPiece rookPiece = board.getPiece(rookStart);
                 board.addPiece(rookStart, null);
                 board.addPiece(rookEnd, rookPiece);
                 rookPiece.setHasMoved(true);
-            }
-            else if (endPos.getColumn() == 3) { // Queenside castling
+            } else if (endPos.getColumn() == 3) {
                 ChessPosition rookStart = new ChessPosition(kingRow, 1);
                 ChessPosition rookEnd = new ChessPosition(kingRow, 4);
                 ChessPiece rookPiece = board.getPiece(rookStart);
@@ -149,24 +144,21 @@ public class ChessGame {
             }
         }
 
-        // Handle en passant
+        // ---- En passant ----
         if (piece.getPieceType() == ChessPiece.PieceType.PAWN) {
             if (Math.abs(startPos.getRow() - endPos.getRow()) == 2) {
                 int enPassantRow = (startPos.getRow() + endPos.getRow()) / 2;
                 board.setEnPassantSquare(new ChessPosition(enPassantRow, startPos.getColumn()));
-            }
-            else if (Math.abs(startPos.getColumn() - endPos.getColumn()) == 1
+            } else if (Math.abs(startPos.getColumn() - endPos.getColumn()) == 1
                     && endPos.equals(board.getEnPassantSquare())) {
                 int capturedRow = (piece.getTeamColor() == TeamColor.WHITE) ? endPos.getRow() - 1 : endPos.getRow() + 1;
                 ChessPosition capturedPos = new ChessPosition(capturedRow, endPos.getColumn());
                 board.addPiece(capturedPos, null);
                 board.setEnPassantSquare(null);
-            }
-            else {
+            } else {
                 board.setEnPassantSquare(null);
             }
-        }
-        else {
+        } else {
             board.setEnPassantSquare(null);
         }
 
@@ -175,8 +167,10 @@ public class ChessGame {
             movedPiece.setHasMoved(true);
         }
 
+        // Switch turn
         currTurn = (currTurn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
     }
+
 
     /**
      * Determines if the given team is in check
