@@ -16,7 +16,7 @@ import javax.websocket.*;
 public class WebSocketCommunicator {
     private Session session;
     private static ServerMessageObserver observer;
-    private final String serverUrl; // e.g., "http://localhost:4567"
+    private final String serverUrl;
     private final Gson gson = new Gson();
     private CountDownLatch latch = new CountDownLatch(1);
 
@@ -35,7 +35,6 @@ public class WebSocketCommunicator {
             e.printStackTrace();
         }
     }
-
 
     @OnOpen
     public void onOpen(Session session) {
@@ -61,8 +60,6 @@ public class WebSocketCommunicator {
         }
     }
 
-    // Convenience methods to send specific commands:
-
     public void sendConnectCommand(String authToken, int gameID) {
         UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID);
         sendCommand(command);
@@ -83,17 +80,10 @@ public class WebSocketCommunicator {
         sendCommand(command);
     }
 
-    // An inner class to extend UserGameCommand with a ChessMove field.
     public static class MakeMoveCommand extends UserGameCommand {
-        private final chess.ChessMove move;
-
         public MakeMoveCommand(String authToken, int gameID, chess.ChessMove move) {
             super(CommandType.MAKE_MOVE, authToken, gameID);
-            this.move = move;
-        }
-
-        public chess.ChessMove getMove() {
-            return move;
+            super.move = move;
         }
     }
 }

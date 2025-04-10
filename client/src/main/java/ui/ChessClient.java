@@ -124,9 +124,10 @@ public class ChessClient {
                 default          -> "Unknown command. Type 'help' for options.";
             };
         } catch (RuntimeException ex) {
+
             String rawMessage = ex.getMessage();
             String friendlyMessage = friendlyErrorMessage(rawMessage);
-            return "Error: " + friendlyMessage;
+            return "Error: " + friendlyMessage + " Raw Message: " + rawMessage;
         }
     }
 
