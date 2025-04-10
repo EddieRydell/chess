@@ -16,6 +16,7 @@ public class ServerFacade implements ServerMessageObserver {
     private final String baseUrl;
     private static final Gson GSON = new Gson();
 
+    // New field for WebSocket communication.
     private WebSocketCommunicator wsComm;
 
     public ServerFacade(int port) {
@@ -26,6 +27,7 @@ public class ServerFacade implements ServerMessageObserver {
         this.baseUrl = url;
     }
 
+    // --- HTTP methods (unchanged) ---
     public AuthData login(String username, String password) {
         record LoginRequest(String username, String password) {}
         String path = "/session";
@@ -73,7 +75,7 @@ public class ServerFacade implements ServerMessageObserver {
         makeRequest("PUT", path, body, null, authToken);
     }
 
-    // New WebSocket Methods
+    // --- New WebSocket Methods for gameplay commands ---
     public void connectToGame(String authToken, int gameId) {
         wsComm = new WebSocketCommunicator(baseUrl, this);
         wsComm.connect();
@@ -98,6 +100,7 @@ public class ServerFacade implements ServerMessageObserver {
         }
     }
 
+    // --- Helper methods for HTTP requests (unchanged) ---
     private <T> T makeRequest(String method,
                               String path,
                               Object requestBody,

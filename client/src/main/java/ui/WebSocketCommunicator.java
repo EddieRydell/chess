@@ -5,31 +5,34 @@ import org.glassfish.tyrus.client.ClientManager;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
 
-import javax.websocket.*;
 import javax.websocket.ClientEndpointConfig;
+import javax.websocket.Session;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
+
+import javax.websocket.*;
 
 @ClientEndpoint
 public class WebSocketCommunicator {
     private Session session;
-    private final ServerMessageObserver observer;
+    private static ServerMessageObserver observer;
     private final String serverUrl; // e.g., "http://localhost:4567"
     private final Gson gson = new Gson();
     private CountDownLatch latch = new CountDownLatch(1);
 
     public WebSocketCommunicator(String serverUrl, ServerMessageObserver observer) {
         this.serverUrl = serverUrl;
-        this.observer = observer;
+        WebSocketCommunicator.observer = observer;
     }
 
     public void connect() {
         try {
             ClientManager client = ClientManager.createClient();
             String wsUrl = serverUrl.replace("http://", "ws://") + "/ws";
-            session = client.connectToServer(this,
-                    ClientEndpointConfig.Builder.create().build(),
-                    URI.create(wsUrl));
+            session = client.connectToServer(
+                    WebSocketCommunicator.class,
+                    URI.create(wsUrl)
+            );
             latch.await(); // Wait until onOpen is called.
         } catch (Exception e) {
             e.printStackTrace();
