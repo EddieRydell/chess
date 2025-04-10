@@ -106,7 +106,6 @@ public class ServerFacade implements ServerMessageObserver {
         }
     }
 
-    // --- Helper methods for HTTP requests (unchanged) ---
     private <T> T makeRequest(String method,
                               String path,
                               Object requestBody,
