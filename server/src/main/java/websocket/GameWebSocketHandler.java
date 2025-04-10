@@ -33,11 +33,11 @@ public class GameWebSocketHandler {
     }
 
     @OnWebSocketConnect
-    public void onConnect(Session session) { /* nothing yet */ }
+    public void onConnect(Session session) { /* nothing */ }
 
     @OnWebSocketClose
     public void onClose(Session session, int status, String reason) {
-        Lobby.remove(session);   // no notification for close itself
+        Lobby.remove(session);
     }
 
     @OnWebSocketError
@@ -68,8 +68,12 @@ public class GameWebSocketHandler {
         }
 
         ChessGame.TeamColor color = null;
-        if (auth.username().equals(game.whiteUsername())) color = ChessGame.TeamColor.WHITE;
-        else if (auth.username().equals(game.blackUsername())) color = ChessGame.TeamColor.BLACK;
+        if (auth.username().equals(game.whiteUsername())) {
+            color = ChessGame.TeamColor.WHITE;
+        }
+        else if (auth.username().equals(game.blackUsername())) {
+            color = ChessGame.TeamColor.BLACK;
+        }
 
         Lobby.Client me = new Lobby.Client(s, auth.username(), game.gameID(), color);
         Lobby.add(me);
@@ -128,7 +132,6 @@ public class GameWebSocketHandler {
         }
     }
 
-
     private void handleLeave(Session s, UserGameCommand cmd) throws DataAccessException {
         AuthData auth = DAO.getAuth(cmd.getAuthToken());
         GameData game = DAO.getGame(cmd.getGameID());
@@ -161,7 +164,6 @@ public class GameWebSocketHandler {
             return;
         }
 
-        // NEW: If the game is already over, reject any further resign commands.
         if (game.game().isGameOver()) {
             send(s, ServerMessage.error("illegal resign: game already over"));
             return;
@@ -177,10 +179,10 @@ public class GameWebSocketHandler {
         broadcast(game.gameID(), ServerMessage.notification(auth.username() + " resigned"));
     }
 
-
-
     private void send(Session s, ServerMessage m) {
-        if (s.isOpen()) s.getRemote().sendStringByFuture(GSON.toJson(m));
+        if (s.isOpen()) {
+            s.getRemote().sendStringByFuture(GSON.toJson(m));
+        }
     }
 
     private void broadcast(int gameId, ServerMessage m) {

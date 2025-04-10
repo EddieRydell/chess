@@ -11,15 +11,15 @@ public class Lobby {
                          int gameId,
                          ChessGame.TeamColor color) { }
 
-    private static final Map<Integer, Set<Client>> rooms = new HashMap<>();
+    private static final Map<Integer, Set<Client>> ROOMS = new HashMap<>();
 
     public static void add(Client c) {
-        rooms.computeIfAbsent(c.gameId(), g -> new HashSet<>()).add(c);
+        ROOMS.computeIfAbsent(c.gameId(), g -> new HashSet<>()).add(c);
     }
     public static void remove(Session s) {
-        rooms.values().forEach(set -> set.removeIf(c -> c.session().equals(s)));
+        ROOMS.values().forEach(set -> set.removeIf(c -> c.session().equals(s)));
     }
     public static Set<Client> clientsIn(int gameId) {
-        return rooms.getOrDefault(gameId, Set.of());
+        return ROOMS.getOrDefault(gameId, Set.of());
     }
 }

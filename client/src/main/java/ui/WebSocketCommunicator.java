@@ -48,11 +48,6 @@ public class WebSocketCommunicator {
         observer.onServerMessage(serverMessage);
     }
 
-    @OnError
-    public void onError(Session session, Throwable t) {
-        System.err.println("WebSocket error: " + t.getMessage());
-    }
-
     public void sendCommand(UserGameCommand command) {
         String json = gson.toJson(command);
         if (session != null && session.isOpen()) {

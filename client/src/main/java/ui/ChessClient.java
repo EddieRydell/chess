@@ -56,84 +56,90 @@ public class ChessClient {
 
     public String eval(String input) {
         try {
-            var tokens = input.trim().split("\\s+");
-            if (tokens.length == 0) {
+            String trimmedInput = input.trim();
+            if (trimmedInput.isEmpty()) {
                 return help();
             }
-            var cmdPartial = tokens[0].toLowerCase();
-            String matchedCmd = matchCommand(cmdPartial);
 
-            if (matchedCmd == null) {
-                switch (cmdPartial) {
-                    case "move":
-                        // Support two formats:
-                        // Algebraic notation: "move e2 e4" => tokens length = 3
-                        // Numeric coordinates: "move 2 5 3 5" => tokens length = 5
-                        chess.ChessMove move = null;
-                        if (tokens.length == 3) {
-                            ChessPosition start = parseAlgebraic(tokens[1]);
-                            ChessPosition end = parseAlgebraic(tokens[2]);
-                            if (start == null || end == null) {
-                                return "Usage: move <startSquare> <endSquare> (e.g., move e2 e4)";
-                            }
-                            move = new chess.ChessMove(start, end, null);
-                        } else if (tokens.length == 5) {
-                            try {
-                                int startRow = Integer.parseInt(tokens[1]);
-                                int startCol = Integer.parseInt(tokens[2]);
-                                int endRow = Integer.parseInt(tokens[3]);
-                                int endCol = Integer.parseInt(tokens[4]);
-                                move = new chess.ChessMove(
-                                        new chess.ChessPosition(startRow, startCol),
-                                        new chess.ChessPosition(endRow, endCol),
-                                        null);
-                            } catch (NumberFormatException ex) {
-                                return "Usage: move <startRow> <startCol> <endRow> <endCol> OR move <startSquare> <endSquare> (e.g., move e2 e4)";
-                            }
-                        } else {
-                            return "Usage: move <startRow> <startCol> <endRow> <endCol> OR move <startSquare> <endSquare> (e.g., move e2 e4)";
-                        }
-                        if (currentGameID == null) {
-                            return "You are not in a game.";
-                        }
-                        server.sendMakeMove(currentUser.authToken(), currentGameID, move);
-                        return "Move command sent.";
-                    case "resign":
-                        if (currentGameID == null) {
-                            return "You are not in a game.";
-                        }
-                        server.sendResign(currentUser.authToken(), currentGameID);
-                        return "Resign command sent.";
-                    case "leave":
-                        if (currentGameID == null) {
-                            return "You are not in a game.";
-                        }
-                        server.sendLeave(currentUser.authToken(), currentGameID);
-                        currentGameID = null;
-                        return "Leave command sent.";
-                    default:
-                        return "Unknown or ambiguous command. Type 'help' for options.";
-                }
-            }
-            var params = Arrays.copyOfRange(tokens, 1, tokens.length);
-            return switch (matchedCmd) {
-                case "login"     -> doLogin(params);
-                case "register"  -> doRegister(params);
-                case "logout"    -> doLogout();
-                case "create"    -> doCreateGame(params);
-                case "list"      -> doListGames();
-                case "join"      -> doJoinGame(params);
-                case "observe"   -> doObserveGame(params);
-                case "help"      -> help();
-                case "quit"      -> "quit";
-                default          -> "Unknown command. Type 'help' for options.";
+            String[] tokens = trimmedInput.split("\\s+");
+            String command = tokens[0].toLowerCase();
+            String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
+
+            return switch (command) {
+                case "move" -> handleMoveCommand(params);
+                case "resign" -> handleResignCommand();
+                case "leave" -> handleLeaveCommand();
+                case "login" -> doLogin(params);
+                case "register" -> doRegister(params);
+                case "logout" -> doLogout();
+                case "create" -> doCreateGame(params);
+                case "list" -> doListGames();
+                case "join" -> doJoinGame(params);
+                case "observe" -> doObserveGame(params);
+                case "help" -> help();
+                case "quit" -> "quit";
+                default -> "Unknown or ambiguous command. Type 'help' for options.";
             };
         } catch (RuntimeException ex) {
-
             String rawMessage = ex.getMessage();
             String friendlyMessage = friendlyErrorMessage(rawMessage);
             return "Error: " + friendlyMessage + " Raw Message: " + rawMessage;
         }
+    }
+
+    private String handleMoveCommand(String[] params) {
+        chess.ChessMove move;
+        // Algebraic notation: move e2 e4
+        if (params.length == 2) {
+            chess.ChessPosition start = parseAlgebraic(params[0]);
+            chess.ChessPosition end = parseAlgebraic(params[1]);
+            if (start == null || end == null) {
+                return "Usage: move <startSquare> <endSquare> (e.g., move e2 e4)";
+            }
+            move = new chess.ChessMove(start, end, null);
+        }
+        // Numeric coordinates: move 2 5 3 5
+        else if (params.length == 4) {
+            try {
+                int startRow = Integer.parseInt(params[0]);
+                int startCol = Integer.parseInt(params[1]);
+                int endRow = Integer.parseInt(params[2]);
+                int endCol = Integer.parseInt(params[3]);
+                move = new chess.ChessMove(
+                        new chess.ChessPosition(startRow, startCol),
+                        new chess.ChessPosition(endRow, endCol),
+                        null);
+            }
+            catch (NumberFormatException ex) {
+                return "Usage: move <startRow> <startCol> <endRow> <endCol>";
+            }
+        }
+        else {
+            return "Usage: move <startRow> <startCol> <endRow> <endCol>";
+        }
+
+        if (currentGameID == null) {
+            return "You are not in a game.";
+        }
+        server.sendMakeMove(currentUser.authToken(), currentGameID, move);
+        return "Move command sent.";
+    }
+
+    private String handleResignCommand() {
+        if (currentGameID == null) {
+            return "You are not in a game.";
+        }
+        server.sendResign(currentUser.authToken(), currentGameID);
+        return "Resign command sent.";
+    }
+
+    private String handleLeaveCommand() {
+        if (currentGameID == null) {
+            return "You are not in a game.";
+        }
+        server.sendLeave(currentUser.authToken(), currentGameID);
+        currentGameID = null;
+        return "Leave command sent.";
     }
 
     /**
