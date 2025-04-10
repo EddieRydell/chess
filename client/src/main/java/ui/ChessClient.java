@@ -162,18 +162,6 @@ public class ChessClient {
         return new chess.ChessPosition(row, col);
     }
 
-
-    private String matchCommand(String partial) {
-        var matches = VALID_COMMANDS.stream()
-                .filter(cmd -> cmd.startsWith(partial))
-                .toList();
-
-        if (matches.size() == 1) {
-            return matches.get(0);
-        }
-        return null;
-    }
-
     private String doLogin(String[] params) {
         if (params.length < 2) {
             throw new RuntimeException("Usage: login <username> <password>");
