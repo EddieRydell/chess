@@ -1,8 +1,6 @@
 package ui;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import chess.ChessBoard;
 import chess.ChessGame;
@@ -69,6 +67,8 @@ public class ChessClient {
                 case "move" -> handleMoveCommand(params);
                 case "resign" -> handleResignCommand();
                 case "leave" -> handleLeaveCommand();
+                case "redraw" -> doRedraw();
+                case "highlight" -> doHighlightCommand(params); // <-- NEW highlight command
                 case "login" -> doLogin(params);
                 case "register" -> doRegister(params);
                 case "logout" -> doLogout();
@@ -83,7 +83,7 @@ public class ChessClient {
         } catch (RuntimeException ex) {
             String rawMessage = ex.getMessage();
             String friendlyMessage = friendlyErrorMessage(rawMessage);
-            return "Error: " + friendlyMessage + " Raw Message: " + rawMessage;
+            return "Error: " + friendlyMessage /* + " Raw Message: " + rawMessage*/ ;
         }
     }
 
@@ -226,6 +226,42 @@ public class ChessClient {
         return sb.toString();
     }
 
+    private String doHighlightCommand(String[] params) {
+        if (params.length != 1) {
+            return "Usage: highlight <square> (e.g., highlight e2)";
+        }
+        ChessPosition selectedPos = parseAlgebraic(params[0]);
+        if (selectedPos == null) {
+            return "Invalid square. Please use algebraic notation (e.g., e2).";
+        }
+        if (currentGameID == null) {
+            return "You are not in a game.";
+        }
+
+        GameData data = server.getGame(currentUser.authToken(), currentGameID);
+        if (data == null) {
+            return "Unable to retrieve game data.";
+        }
+        ChessBoard board = data.game().getBoard();
+        ChessGame game = data.game();
+
+        var legalMoves = game.validMoves(selectedPos);
+        if (legalMoves == null) {
+            return "No piece at the selected square.";
+        }
+        if (legalMoves.isEmpty()) {
+            return "The piece at the selected square has no legal moves.";
+        }
+
+        Set<ChessPosition> highlightSquares = new HashSet<>();
+        highlightSquares.add(selectedPos);
+        for (var move : legalMoves) {
+            highlightSquares.add(move.getEndPosition());
+        }
+
+        return drawBoardWithHighlights(board, playerColor, selectedPos, highlightSquares);
+    }
+
     private String getPieceEmoji(ChessPiece piece) {
         return switch (piece.getTeamColor()) {
             case WHITE -> switch (piece.getPieceType()) {
@@ -247,17 +283,73 @@ public class ChessClient {
         };
     }
 
-    private String drawBoard(ChessBoard board, String perspective) {
+    private String drawBoardWithHighlights(ChessBoard board, String perspective, ChessPosition selected, Set<ChessPosition> highlights) {
         StringBuilder sb = new StringBuilder();
         boolean isWhite = perspective.equalsIgnoreCase("WHITE");
 
-        // Column labels (files)
         String[] files = {"a", "b", "c", "d", "e", "f", "g", "h"};
         if (!isWhite) {
             Collections.reverse(Arrays.asList(files));
         }
 
-        // Print top column labels
+        sb.append("  ");
+        for (String file : files) {
+            sb.append(" ").append(file).append(" ");
+        }
+        sb.append("\n");
+
+        String selectedColor = EscapeSequences.SET_BG_COLOR_YELLOW;
+        String legalMoveColor = EscapeSequences.SET_BG_COLOR_GREEN;
+
+        for (int r = 0; r < 8; r++) {
+            int actualRow = isWhite ? 8 - r : r + 1;
+            sb.append(actualRow).append(" ");
+
+            for (int c = 0; c < 8; c++) {
+                int actualCol = isWhite ? c + 1 : 8 - c;
+                ChessPosition pos = new ChessPosition(actualRow, actualCol);
+                ChessPiece piece = board.getPiece(pos);
+
+                boolean isDarkSquare = (actualRow + actualCol) % 2 == 0;
+                String normalBgColor = isDarkSquare
+                        ? EscapeSequences.SET_BG_COLOR_DARK_GREY
+                        : EscapeSequences.SET_BG_COLOR_LIGHT_GREY;
+
+                String cellBg = normalBgColor;
+                if (highlights != null && highlights.contains(pos)) {
+                    if (pos.equals(selected)) {
+                        cellBg = selectedColor;
+                    } else {
+                        cellBg = legalMoveColor;
+                    }
+                }
+
+                String pieceStr = EscapeSequences.EMPTY;
+                if (piece != null) {
+                    pieceStr = getPieceEmoji(piece);
+                }
+
+                sb.append(cellBg).append(pieceStr).append(EscapeSequences.RESET_BG_COLOR);
+            }
+            sb.append(" ").append(actualRow).append("\n");
+        }
+
+        sb.append("  ");
+        for (String file : files) {
+            sb.append(" ").append(file).append(" ");
+        }
+        sb.append("\n");
+        return sb.toString();
+    }
+
+    private String drawBoard(ChessBoard board, String perspective) {
+        String[] files = {"a", "b", "c", "d", "e", "f", "g", "h"};
+        boolean isWhite = perspective.equalsIgnoreCase("WHITE");
+        if (!isWhite) {
+            Collections.reverse(Arrays.asList(files));
+        }
+
+        StringBuilder sb = new StringBuilder();
         sb.append("  ");
         for (String file : files) {
             sb.append(" ").append(file).append(" ");
@@ -343,15 +435,16 @@ public class ChessClient {
         } catch (NumberFormatException e) {
             throw new RuntimeException("Invalid game number.");
         }
-
         var games = server.listGames(currentUser.authToken());
         if (gameNumber < 0 || gameNumber >= games.size()) {
             throw new RuntimeException("Game number out of range.");
         }
         var chosenGame = games.get(gameNumber);
 
-        GameData data = server.getGame(currentUser.authToken(), chosenGame.gameID());
+        // Set currentGameID so that observers also have a game context.
+        currentGameID = chosenGame.gameID();
 
+        GameData data = server.getGame(currentUser.authToken(), chosenGame.gameID());
         String boardString = drawBoard(data.game().getBoard(), "white");
 
         return String.format("Now observing game '%s' (ID %d)\n%s",
@@ -362,10 +455,23 @@ public class ChessClient {
     }
 
 
+
     private void assertLoggedIn() {
         if (state == State.LOGGEDOUT) {
             throw new RuntimeException("You must be logged in for that command.");
         }
+    }
+
+    private String doRedraw() {
+        assertLoggedIn();
+        if (currentGameID == null) {
+            return "You are not in a game.";
+        }
+        GameData data = server.getGame(currentUser.authToken(), currentGameID);
+        if (data == null) {
+            return "Unable to retrieve game data.";
+        }
+        return drawBoard(data.game().getBoard(), playerColor);
     }
 
     public String help() {
@@ -384,6 +490,8 @@ public class ChessClient {
                   list
                   join <gameNumber> <white|black>
                   observe <gameNumber>
+                  redraw
+                  highlight <square>
                   logout
                   quit
                   help
