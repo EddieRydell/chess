@@ -45,7 +45,6 @@ public class WebSocketCommunicator {
 
     @OnMessage
     public void onMessage(String message) {
-        // Deserialize JSON message to a ServerMessage object and pass it to the observer.
         ServerMessage serverMessage = gson.fromJson(message, ServerMessage.class);
         observer.onServerMessage(serverMessage);
     }

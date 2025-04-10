@@ -262,26 +262,25 @@ public class DBDataAccess implements DataAccess {
 
     @Override
     public void updateGame(GameData game) throws DataAccessException {
+        // Verify that the game exists.
         GameData currentGame = getGame(game.gameID());
         if (currentGame == null) {
             throw new DataAccessException("Game ID does not exist: " + game.gameID());
         }
 
-        String updatedWhite = game.whiteUsername() != null ? game.whiteUsername() : currentGame.whiteUsername();
-        String updatedBlack = game.blackUsername() != null ? game.blackUsername() : currentGame.blackUsername();
-
         final String sql = """
-        UPDATE gameData
-        SET gameName = ?, whiteUsername = ?, blackUsername = ?, gameJSON = ?
-        WHERE gameID = ?
+    UPDATE gameData
+    SET gameName = ?, whiteUsername = ?, blackUsername = ?, gameJSON = ?
+    WHERE gameID = ?
     """;
 
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, game.gameName());
-            stmt.setString(2, updatedWhite);
-            stmt.setString(3, updatedBlack);
+            // Use the values provided in game data—even if they're null.
+            stmt.setString(2, game.whiteUsername());
+            stmt.setString(3, game.blackUsername());
             String gameJson = gson.toJson(game.game());
             stmt.setString(4, gameJson);
             stmt.setInt(5, game.gameID());
@@ -290,7 +289,6 @@ public class DBDataAccess implements DataAccess {
             if (rowsUpdated == 0) {
                 throw new DataAccessException("Game ID does not exist: " + game.gameID());
             }
-
         } catch (SQLException e) {
             throw new DataAccessException("Error updating game: " + e.getMessage());
         }

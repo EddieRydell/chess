@@ -32,8 +32,6 @@ public class GameWebSocketHandler {
         USER_SERVICE = new UserService(DAO);
     }
 
-    /* ---------------------------------------------------- */
-
     @OnWebSocketConnect
     public void onConnect(Session session) { /* nothing yet */ }
 
@@ -44,8 +42,6 @@ public class GameWebSocketHandler {
 
     @OnWebSocketError
     public void onError(Session s, Throwable err) { err.printStackTrace(); }
-
-    /* ------------- main dispatcher ---------------------- */
 
     @OnWebSocketMessage
     public void onMessage(Session session, String json) {
@@ -62,8 +58,6 @@ public class GameWebSocketHandler {
         }
     }
 
-    /* ------------- command handlers --------------------- */
-
     private void handleConnect(Session s, UserGameCommand cmd) throws DataAccessException {
         AuthData auth = DAO.getAuth(cmd.getAuthToken());
         GameData game = DAO.getGame(cmd.getGameID());
@@ -73,7 +67,6 @@ public class GameWebSocketHandler {
             return;
         }
 
-        // determine color / observer
         ChessGame.TeamColor color = null;
         if (auth.username().equals(game.whiteUsername())) color = ChessGame.TeamColor.WHITE;
         else if (auth.username().equals(game.blackUsername())) color = ChessGame.TeamColor.BLACK;
@@ -81,10 +74,8 @@ public class GameWebSocketHandler {
         Lobby.Client me = new Lobby.Client(s, auth.username(), game.gameID(), color);
         Lobby.add(me);
 
-        // 1) send LOAD_GAME to root client
         send(s, ServerMessage.loadGame(game.game()));
 
-        // 2) send NOTIFICATION to all *other* clients in game
         String note = (color == null)
                 ? auth.username() + " connected as an observer"
                 : auth.username() + " connected as " + color;
@@ -99,39 +90,68 @@ public class GameWebSocketHandler {
             return;
         }
 
-        ChessMove move = cmd.getMove();          // you added getMove() in subclass
-        try {
-            gameData.game().makeMove(move);      // throws if illegal / wrong turn
-            DAO.updateGame(gameData);            // persist
+        if (gameData.game().isGameOver()) {
+            send(s, ServerMessage.error("illegal move: game is over"));
+            return;
+        }
 
-            // broadcast LOAD_GAME to everyone
+        String sender = auth.username();
+        ChessGame.TeamColor currentTurn = gameData.game().getTeamTurn();
+        if ((currentTurn == ChessGame.TeamColor.WHITE && !sender.equals(gameData.whiteUsername()))
+                || (currentTurn == ChessGame.TeamColor.BLACK && !sender.equals(gameData.blackUsername()))) {
+            send(s, ServerMessage.error("illegal move: not your turn"));
+            return;
+        }
+
+        ChessMove move = cmd.getMove();
+        try {
+            gameData.game().makeMove(move);
+            DAO.updateGame(gameData);
+
             ServerMessage load = ServerMessage.loadGame(gameData.game());
             broadcast(gameData.gameID(), load);
 
-            // notify others (not root)
-            String desc = auth.username() + " moved " +
+            String desc = sender + " moved " +
                     move.getStartPosition() + " -> " + move.getEndPosition();
             broadcastExcept(gameData.gameID(), s, ServerMessage.notification(desc));
 
-            // check / mate notifications
             if (gameData.game().isInCheckmate(gameData.game().getTeamTurn())) {
-                broadcast(gameData.gameID(),
-                        ServerMessage.notification(auth.username() + " is in checkmate"));
+                broadcast(gameData.gameID(), ServerMessage.notification(sender + " is in checkmate"));
             } else if (gameData.game().isInCheck(gameData.game().getTeamTurn())) {
-                broadcast(gameData.gameID(),
-                        ServerMessage.notification(auth.username() + " is in check"));
+                broadcast(gameData.gameID(), ServerMessage.notification(sender + " is in check"));
             }
 
         } catch (Exception ex) {
+            System.out.println(ex.toString());
+            System.out.println("Board snapshot after illegal move: " + gameData.game().getBoard());
             send(s, ServerMessage.error("illegal move"));
         }
     }
 
-    private void handleLeave(Session s, UserGameCommand cmd) {
+
+    private void handleLeave(Session s, UserGameCommand cmd) throws DataAccessException {
+        AuthData auth = DAO.getAuth(cmd.getAuthToken());
+        GameData game = DAO.getGame(cmd.getGameID());
+
+        if (auth != null && game != null) {
+            String username = auth.username();
+            boolean updated = false;
+            if (username.equals(game.whiteUsername())) {
+                game = new GameData(game.gameID(), null, game.blackUsername(), game.gameName(), game.game());
+                updated = true;
+            } else if (username.equals(game.blackUsername())) {
+                game = new GameData(game.gameID(), game.whiteUsername(), null, game.gameName(), game.game());
+                updated = true;
+            }
+            if (updated) {
+                DAO.updateGame(game);
+            }
+        }
+
         Lobby.remove(s);
-        broadcastExcept(cmd.getGameID(), s,
-                ServerMessage.notification("A player left the game"));
+        broadcastExcept(cmd.getGameID(), s, ServerMessage.notification("A player left the game"));
     }
+
 
     private void handleResign(Session s, UserGameCommand cmd) throws DataAccessException {
         AuthData auth = DAO.getAuth(cmd.getAuthToken());
@@ -140,11 +160,24 @@ public class GameWebSocketHandler {
             send(s, ServerMessage.error("invalid auth or game id"));
             return;
         }
+
+        // NEW: If the game is already over, reject any further resign commands.
+        if (game.game().isGameOver()) {
+            send(s, ServerMessage.error("illegal resign: game already over"));
+            return;
+        }
+
+        if (!auth.username().equals(game.whiteUsername()) && !auth.username().equals(game.blackUsername())) {
+            send(s, ServerMessage.error("illegal resign: observers cannot resign"));
+            return;
+        }
+
         game.game().setGameOver(true);
         DAO.updateGame(game);
-        broadcast(game.gameID(),
-                ServerMessage.notification(auth.username() + " resigned"));
+        broadcast(game.gameID(), ServerMessage.notification(auth.username() + " resigned"));
     }
+
+
 
     private void send(Session s, ServerMessage m) {
         if (s.isOpen()) s.getRemote().sendStringByFuture(GSON.toJson(m));
