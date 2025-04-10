@@ -10,6 +10,9 @@ import model.AuthData;
 import model.GameData;
 import websocket.messages.ServerMessage;
 
+import static ui.EscapeSequences.RESET_TEXT_COLOR;
+import static ui.EscapeSequences.SET_TEXT_COLOR_BLUE;
+
 public class ChessClient {
 
     private String playerColor = "white";
@@ -291,10 +294,9 @@ public class ChessClient {
         if (!isWhite) {
             Collections.reverse(Arrays.asList(files));
         }
-
-        sb.append("  ");
+        sb.append(SET_TEXT_COLOR_BLUE + "\n  ");
         for (String file : files) {
-            sb.append(" ").append(file).append(" ");
+            sb.append(" ").append(file).append("  ");
         }
         sb.append("\n");
 
@@ -336,9 +338,9 @@ public class ChessClient {
 
         sb.append("  ");
         for (String file : files) {
-            sb.append(" ").append(file).append(" ");
+            sb.append(" ").append(file).append("  ");
         }
-        sb.append("\n");
+        sb.append("\n" + RESET_TEXT_COLOR);
         return sb.toString();
     }
 
@@ -350,9 +352,9 @@ public class ChessClient {
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("  ");
+        sb.append(SET_TEXT_COLOR_BLUE + "\n  ");
         for (String file : files) {
-            sb.append(" ").append(file).append(" ");
+            sb.append(" ").append(file).append("  ");
         }
         sb.append("\n");
 
@@ -382,9 +384,9 @@ public class ChessClient {
 
         sb.append("  ");
         for (String file : files) {
-            sb.append(" ").append(file).append(" ");
+            sb.append(" ").append(file).append("  ");
         }
-        sb.append("\n");
+        sb.append("\n" + RESET_TEXT_COLOR);
 
         return sb.toString();
     }
@@ -441,7 +443,7 @@ public class ChessClient {
         }
         var chosenGame = games.get(gameNumber);
 
-        // Set currentGameID so that observers also have a game context.
+        server.connectToGame(currentUser.authToken(), chosenGame.gameID());
         currentGameID = chosenGame.gameID();
 
         GameData data = server.getGame(currentUser.authToken(), chosenGame.gameID());
@@ -453,8 +455,6 @@ public class ChessClient {
                 boardString
         );
     }
-
-
 
     private void assertLoggedIn() {
         if (state == State.LOGGEDOUT) {
