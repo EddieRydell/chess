@@ -160,8 +160,8 @@ public class ChessClient {
         if (rankChar < '1' || rankChar > '8') {
             return null;
         }
-        int col = fileChar - 'a' + 1;  // maps a->1, b->2, ... h->8
-        int row = rankChar - '0';      // converts '1'->1, etc.
+        int col = fileChar - 'a' + 1;
+        int row = rankChar - '0';
         return new chess.ChessPosition(row, col);
     }
 
@@ -517,7 +517,6 @@ public class ChessClient {
                 System.out.println("NOTIFICATION: " + message.message);
                 if (message.message.toLowerCase().contains("resigned")) {
                     System.out.println("Game over. No further moves allowed.");
-                    // Optionally update an internal game state flag
                 }
                 break;
             case ERROR:

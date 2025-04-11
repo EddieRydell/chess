@@ -27,9 +27,9 @@ public class ServerMessage {
         return this.serverMessageType;
     }
 
-    public ChessGame game;      // must be called exactly "game"
-    public String message;      // for NOTIFICATION
-    public String errorMessage; // for ERROR
+    public ChessGame game;
+    public String message;
+    public String errorMessage;
 
     public static ServerMessage loadGame(ChessGame game) {
         ServerMessage m = new ServerMessage(ServerMessageType.LOAD_GAME);

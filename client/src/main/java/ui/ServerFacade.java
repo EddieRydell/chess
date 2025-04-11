@@ -81,7 +81,6 @@ public class ServerFacade implements ServerMessageObserver {
         makeRequest("PUT", path, body, null, authToken);
     }
 
-    // --- New WebSocket Methods for gameplay commands ---
     public void connectToGame(String authToken, int gameId) {
         wsComm = new WebSocketCommunicator(baseUrl, this);
         wsComm.connect();
